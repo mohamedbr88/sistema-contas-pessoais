@@ -1,0 +1,38 @@
+CONTAS PESSOAIS ONLINE — CORREÇÕES REALIZADAS
+
+1. Contas do mês
+- Corrigida a importação de contasApi e fixosApi no formulário.
+- Adicionar, editar e salvar contas volta a chamar a API correta.
+
+2. Dia a dia
+- Corrigida a importação de despesasApi.
+- Novo gasto, edição e exclusão voltam a funcionar.
+
+3. Viagens
+- Ligados os botões Nova viagem, Editar viagem e seletor entre viagens.
+- Uma viagem nova abre o mesmo painel principal, vazio e pronto para uso.
+- Corrigido editar estadia: o botão agora usa o ID da hospedagem, não a data.
+- Corrigidas as APIs de criar, editar e apagar viagens.
+- Corrigido carregamento de destino, câmbio, orçamento e status.
+- Estadia e gasto da viagem usam viagemApi corretamente.
+
+4. Moedas
+- Os quatro botões superiores agora convertem os valores principais de toda a tela Viagem.
+- A coluna Original mantém o valor na moeda em que a viagem foi paga.
+
+5. Fixos
+- Adicionado botão + Nova fixa.
+- Adicionado botão editar em cada conta fixa.
+- Criada atualização de fixos na API.
+- Continuam disponíveis ativar/desativar, apagar e lançar no mês/ano.
+
+6. Privacidade
+- Removido o botão de importar base inicial.
+- Removidos os dados pessoais do seed.js.
+- Removidos da tela os links Não tenho conta e Esqueci a senha.
+- Ainda é necessário desativar novos cadastros no painel do Supabase.
+
+7. Validação
+- Todos os arquivos JavaScript passaram na verificação de sintaxe do Node.js.
+- Para múltiplas viagens, execute supabase/002_multiviagem.sql no Supabase antes de publicar.
+- O teste real de gravação depende do seu Supabase e deve ser confirmado após o deploy.

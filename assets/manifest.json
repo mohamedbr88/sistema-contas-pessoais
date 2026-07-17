@@ -1,0 +1,10 @@
+{
+  "name": "Contas",
+  "short_name": "Contas",
+  "description": "Contas, dia a dia e viagens.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#E9EEEE",
+  "theme_color": "#E9EEEE",
+  "icons": [{ "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}
