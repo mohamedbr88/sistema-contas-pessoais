@@ -11,9 +11,9 @@
 //  A anon key é pública de propósito — quem protege seus dados é o RLS do banco.
 // ============================================================================
 
-export const SUPABASE_URL = 'https://COLE_AQUI.supabase.co';
+export const SUPABASE_URL = 'https://xgtwbdpddhalnlhxunwa.supabase.co';
 
-export const SUPABASE_ANON_KEY = 'COLE_AQUI_A_ANON_KEY';
+export const SUPABASE_ANON_KEY = 'sb_publishable_Wo4wFzsKON23en2EH0IVIg_3f0mqURz';
 
 // ---------------------------------------------------------------------------
 // Trava de segurança: avisa alto se você colar a chave errada.
