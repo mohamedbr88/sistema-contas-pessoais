@@ -211,3 +211,10 @@ tr.lin:hover{background:color-mix(in srgb,var(--c) 7%,#fff)}
 .lnk{font-size:12.5px;color:var(--ink-2);text-decoration:underline;text-underline-offset:2px;padding:4px 0}
 .lnk:hover{color:var(--cofre)}
 #carregando{padding:60px 16px;text-align:center;color:var(--ink-2);font-size:13.5px}
+/* Quando o login estiver oculto, não ocupar espaço */
+#login[hidden] {
+  display: none !important;
+  min-height: 0 !important;
+  height: 0 !important;
+  padding: 0 !important;
+}
