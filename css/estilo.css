@@ -277,6 +277,23 @@ tr.lin:hover{background:color-mix(in srgb,var(--c) 7%,#fff)}
 .grafico-legend-inline i{display:inline-block;width:22px;height:3px;border-radius:99px;background:#D84315}
 .grafico-legend-inline i.dot{width:8px;height:8px;border-radius:50%;background:#0F6E5C}
 .diario-resumo-mensal .kpi{min-height:112px}
+.diario-graficos-mes{align-items:start}
+.diario-categorias-mes{padding:8px 0 12px}
+.diario-barra-cat .lab{display:grid;gap:1px}
+.diario-barra-cat .lab b{font-size:12.5px;font-weight:600;color:var(--ink)}
+.diario-barra-cat .lab small{font-size:11px;color:var(--ink-2)}
+.diario-grafico-soma{padding:0 14px 12px;font-size:11px;color:var(--ink-2)}
+.diario-grafico-soma b{font-family:var(--mono);font-size:12px;color:var(--ink)}
+.diario-gasto-dia-wrap{padding:10px 14px}
+.diario-gasto-dia-bars{display:flex;gap:2px;align-items:flex-end;height:140px}
+.diario-dia-col{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;align-items:center}
+.diario-dia-bar{width:100%;border:none;background:var(--cofre);opacity:.75;border-radius:2px 2px 0 0;min-height:4px;transition:opacity .12s,filter .12s}
+.diario-dia-bar:hover{opacity:1;filter:brightness(.95)}
+.diario-dia-bar.zero{background:transparent;box-shadow:inset 0 0 0 1px #D7E2E0;opacity:1}
+.diario-dia-bar.is-max{background:var(--azul);opacity:.92}
+.diario-dia-bar.selected{box-shadow:0 0 0 2px color-mix(in srgb,var(--cofre) 45%,#fff)}
+.diario-dia-col-label{font-family:var(--mono);font-size:9px;line-height:1;color:var(--ink-2)}
+.diario-gasto-dia-meta{padding-top:8px;font-size:10px;color:var(--ink-2);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
 
 @media(max-width:980px){
   .diario-hero-body{grid-template-columns:1fr}
@@ -301,5 +318,7 @@ tr.lin:hover{background:color-mix(in srgb,var(--c) 7%,#fff)}
   .diario-dia-total{font-size:9px;min-height:20px}
   .grafico-legenda{font-size:10px}
   .grafico-cabecalho p{font-size:12px}
+  .diario-gasto-dia-bars{height:122px}
+  .diario-gasto-dia-meta{font-size:9px}
   .aba{padding:8px 10px;font-size:12px}
 }

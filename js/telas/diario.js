@@ -75,6 +75,63 @@ function pontosGrafico(acumulado, nd) {
   return { totais, pts, max, w, h, padX, padY, ticksY, ticksX, diasComLancamento };
 }
 
+function resumoOndeFoiDinheiro(dsMes, totalMes) {
+  const porCategoria = new Map();
+  dsMes.forEach(d => {
+    const categoria = (d.cat || '').trim() || 'Sem categoria';
+    const atual = porCategoria.get(categoria) || { k: categoria, v: 0, qtd: 0 };
+    atual.v += valorEmBRL(d.valor, d.moeda);
+    atual.qtd += 1;
+    porCategoria.set(categoria, atual);
+  });
+  const itens = [...porCategoria.values()]
+    .sort((a, b) => b.v - a.v || a.k.localeCompare(b.k))
+    .map(item => ({
+      ...item,
+      pct: totalMes ? (item.v / totalMes) * 100 : 0
+    }));
+  const max = Math.max(...itens.map(item => item.v), 1);
+  const totalCategorias = itens.reduce((s, item) => s + item.v, 0);
+  return { itens, max, totalCategorias };
+}
+
+function resumoGastoPorDiaMes(dsMes, ano, mes) {
+  const nd = new Date(ano, mes, 0).getDate();
+  const prefixo = `${ano}-${String(mes).padStart(2, '0')}`;
+  const itens = Array.from({ length: nd }, (_, idx) => ({
+    dia: idx + 1,
+    data: `${prefixo}-${String(idx + 1).padStart(2, '0')}`,
+    total: 0,
+    qtd: 0,
+    maior: null
+  }));
+
+  dsMes.forEach(d => {
+    const dia = +d.data.slice(8, 10);
+    if (dia < 1 || dia > nd) return;
+    const item = itens[dia - 1];
+    const valor = valorEmBRL(d.valor, d.moeda);
+    item.total += valor;
+    item.qtd += 1;
+    if (!item.maior || valor > valorEmBRL(item.maior.valor, item.maior.moeda)) {
+      item.maior = d;
+    }
+  });
+
+  const max = Math.max(...itens.map(item => item.total), 0);
+  const totalDias = itens.reduce((s, item) => s + item.total, 0);
+  const diaMaisGasto = itens.filter(item => item.total > 0)
+    .sort((a, b) => b.total - a.total || a.data.localeCompare(b.data))[0] || null;
+  return { itens, max, totalDias, diaMaisGasto };
+}
+
+function tooltipGastoDiaMes(item, ano, mes) {
+  const maior = item.maior
+    ? `${esc(item.maior.desc || 'Sem descrição')} (${M(item.maior.valor, item.maior.moeda)})`
+    : 'Sem lançamentos';
+  return `${formatDate(ano, mes, item.dia)} · ${Mc(item.total)} · ${item.qtd} lançamento(s) · maior: ${maior}`;
+}
+
 export function telaDiario(){
   const resumoMes = resumoDiarioMes();
   const dsMes = resumoMes.dsMes;
@@ -126,6 +183,8 @@ export function telaDiario(){
     return valorEmBRL(d.valor, d.moeda) > valorEmBRL(max.valor, max.moeda) ? d : max;
   }, null);
   const resumoPg = resumoPagamento(pagamentoMaisUsado);
+  const ondeFoi = resumoOndeFoiDinheiro(dsMes, totalMes);
+  const gastoPorDia = resumoGastoPorDiaMes(dsMes, V.ano, V.mes);
 
   return `<section class="diario-dashboard">
     <div class="card diario-hero"><div class="card-hd"><h3>Gasto do mês</h3>
@@ -207,6 +266,32 @@ export function telaDiario(){
         <div class="kpi"><span>Dia com menor gasto</span><b>${diaMenosGastou ? Mc(diaMenosGastou.total) : 'Sem dados'}</b><small>${diaMenosGastou ? menorDiaRotulo : 'Sem dados'}</small></div>
         <div class="kpi"><span>Quantidade de lançamentos</span><b>${resumoMes.quantidade || 'Sem dados'}</b><small>${resumoMes.quantidade ? 'no mês selecionado' : 'Sem dados'}</small></div>
       </div></div>
+
+    <div class="grid2 diario-graficos-mes">
+      <div class="card"><div class="card-hd"><h3>Onde foi o dinheiro no mês</h3></div>
+        <div class="diario-categorias-mes">
+          ${!ondeFoi.itens.length
+            ? `<div class="vazio" style="padding:26px 16px">Nada gasto ainda.<br>As barras aparecem no primeiro lançamento.</div>`
+            : ondeFoi.itens.map(item => `<div class="barra diario-barra-cat"><div class="lab"><b>${esc(item.k)}</b><small>${item.pct.toFixed(0)}% · ${item.qtd} lançamento(s)</small></div>
+                <div class="trilho"><div class="fill" style="width:${(item.v / ondeFoi.max) * 100}%;background:${cor(item.k)}"></div></div>
+                <div class="v">${Mc(item.v)}</div></div>`).join('')}
+        </div>
+        <div class="diario-grafico-soma">Total das categorias: <b>${Mc(ondeFoi.totalCategorias)}</b></div>
+      </div>
+
+      <div class="card"><div class="card-hd"><h3>Gasto por dia do mês</h3><div class="dir" style="font-size:11px;color:var(--ink-2)">só o dia a dia</div></div>
+        <div class="diario-gasto-dia-wrap">
+          ${!resumoMes.quantidade
+            ? `<div class="vazio" style="width:100%;padding:26px 16px">Sem gasto lançado.</div>`
+            : `<div class="diario-gasto-dia-bars">${gastoPorDia.itens.map(item => {
+                const altura = gastoPorDia.max ? (item.total / gastoPorDia.max) * 100 : 0;
+                const destaque = gastoPorDia.diaMaisGasto && gastoPorDia.diaMaisGasto.dia === item.dia;
+                return `<div class="diario-dia-col"><button class="diario-dia-bar${item.total ? '' : ' zero'}${destaque ? ' is-max' : ''}${diaSel === item.dia ? ' selected' : ''}" data-dia="${item.dia}" title="${esc(tooltipGastoDiaMes(item, V.ano, V.mes))}" aria-label="Dia ${item.dia}: ${Mc(item.total)}" style="height:${altura.toFixed(2)}%"></button><span class="diario-dia-col-label">${item.dia}</span></div>`;
+              }).join('')}</div>
+              <div class="diario-gasto-dia-meta"><span class="mono">${formatDate(V.ano, V.mes, 1)}</span><span class="mono">maior dia: ${gastoPorDia.diaMaisGasto ? `${formatDateIso(gastoPorDia.diaMaisGasto.data)} · ${Mc(gastoPorDia.diaMaisGasto.total)}` : 'Sem dados'}</span><span class="mono">${formatDate(V.ano, V.mes, nd)}</span></div>`}
+        </div>
+      </div>
+    </div>
 
     <div class="card"><div class="card-hd"><h3>${diaSel ? `Lançamentos de ${formatDate(V.ano,V.mes,diaSel)}` : `Lançamentos de ${MESES[V.mes-1]}`}</h3></div>
       ${diaSel && !qtd ? `<div class="vazio"><b>Nenhum lançamento neste dia.</b>
