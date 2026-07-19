@@ -41,7 +41,7 @@ header{background:var(--card);border-bottom:1px solid var(--line);position:stick
 .app-main{padding-top:14px}
 .fita-hd{display:flex;justify-content:space-between;align-items:baseline;padding:11px 14px 9px;border-bottom:1px dashed var(--line)}
 .fita-hd h2{font-family:var(--disp);font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2)}
-.fita-hd em{font-style:normal;font-size:11px;color:var(--ink-2)}
+.fita-hd em{font-style:normal;font-size:11px;color:var(--ink-2);line-height:1.45;max-width:52ch;text-align:right}
 .dias{display:flex;gap:3px;padding:12px 14px 10px;overflow-x:auto;scrollbar-width:thin}
 .dia{flex:1 0 26px;min-width:26px;display:flex;flex-direction:column;align-items:center;gap:5px;
   border:none;padding:4px 0 5px;border-radius:6px;transition:background .12s}
@@ -61,7 +61,7 @@ header{background:var(--card);border-bottom:1px solid var(--line);position:stick
 .diario-calendario .dia.no{color:var(--ink-2);opacity:.65}
 .diario-calendario .dia.selected{background:#DDE6E4;box-shadow:inset 0 0 0 1px var(--cofre)}
 .diario-calendario .badge{position:absolute;top:6px;right:6px;background:var(--cofre);color:#fff;border-radius:999px;font-size:10px;line-height:1;padding:2px 6px}
-.diario-dia-total{font-family:var(--mono);font-size:10px;color:var(--ink);line-height:1.2;min-height:24px;display:flex;align-items:center;text-align:center}
+.diario-dia-total{font-family:var(--mono);font-size:10px;color:var(--ink);line-height:1.2;min-height:24px;display:flex;align-items:center;justify-content:center;text-align:center}
 
 /* ---- abas ---- */
 .abas{display:flex;gap:5px;border-bottom:1px solid var(--line);margin-bottom:16px;
@@ -266,6 +266,7 @@ tr.lin:hover{background:color-mix(in srgb,var(--c) 7%,#fff)}
 .diario-pills{display:flex;gap:6px;flex-wrap:wrap}
 .diario-grid-top{display:grid;grid-template-columns:minmax(320px,1.1fr) minmax(300px,.9fr);gap:14px;align-items:start}
 .diario-calendar-help{padding:0 14px 4px;font-size:12px;color:var(--ink-2)}
+.diario-calendar-help{line-height:1.45}
 .diario-dia-card .vazio{padding:30px 18px;text-align:left}
 .diario-dia-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--line)}
 .diario-vazio-dia p{margin-top:8px}
@@ -285,10 +286,20 @@ tr.lin:hover{background:color-mix(in srgb,var(--c) 7%,#fff)}
   .diario-grid-top{grid-template-columns:1fr}
 }
 @media(max-width:720px){
+  .fita-hd{flex-direction:column;align-items:flex-start;gap:6px}
+  .fita-hd em{text-align:left;max-width:none}
   .diario-hero-total b{font-size:32px}
   .diario-hero-side{grid-template-columns:1fr}
   .diario-stat{border-left:none}
+  .diario-stat{padding:14px 16px}
   .diario-dia-grid{grid-template-columns:1fr}
   .grafico-cabecalho{padding-top:12px}
   .diario-resumo-grid,.diario-resumo-mensal{grid-template-columns:1fr}
+  .diario-calendario{grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;padding:12px}
+  .diario-calendario .dia{padding:10px 4px 8px}
+  .diario-calendario .badge{top:4px;right:4px;padding:2px 5px}
+  .diario-dia-total{font-size:9px;min-height:20px}
+  .grafico-legenda{font-size:10px}
+  .grafico-cabecalho p{font-size:12px}
+  .aba{padding:8px 10px;font-size:12px}
 }
