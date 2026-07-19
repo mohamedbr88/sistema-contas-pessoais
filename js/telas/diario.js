@@ -5,7 +5,7 @@
 import { diarioDoMes, resumoDiarioMes, somaValor, agruparDiario, valorEmBRL } from '../calculos.js?v=20260719-3';
 import { CATD, MESES, PAGD, LOCS, S, V, cor, esc } from '../estado.js';
 import { M, MOEDAS, Mc } from '../moeda.js';
-import { despesasApi, metasApi } from '../api.js?v=20260719-3';
+import { despesasApi, metasApi } from '../api.js?v=20260719-4';
 import { formGen } from '../ui.js';
 
 function formatDate(year, month, day) {
@@ -15,6 +15,64 @@ function formatDate(year, month, day) {
 function formatDateIso(data) {
   if (!data) return '—';
   return `${data.slice(8,10)}/${data.slice(5,7)}/${data.slice(0,4)}`;
+}
+
+function pad2(n) {
+  return String(n).padStart(2, '0');
+}
+
+function horaNormalizada(hora) {
+  if (!hora) return '';
+  const [h = '0', m = '0', s = '0'] = String(hora).split(':');
+  return `${pad2(+h || 0)}:${pad2(+m || 0)}:${pad2(+s || 0)}`;
+}
+
+function horaFromCreatedAt(createdAt) {
+  if (!createdAt) return '';
+  const dt = new Date(createdAt);
+  if (Number.isNaN(dt.getTime())) return '';
+  const partes = new Intl.DateTimeFormat('pt-BR', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+    timeZone: 'America/Sao_Paulo'
+  }).formatToParts(dt);
+  const pick = tipo => partes.find(p => p.type === tipo)?.value || '00';
+  return `${pick('hour')}:${pick('minute')}:${pick('second')}`;
+}
+
+function horaExibicao(d) {
+  return horaNormalizada(d.hora) || horaFromCreatedAt(d.createdAt || d.created_at) || '—';
+}
+
+function segundosDaHora(hora) {
+  const [h = '0', m = '0', s = '0'] = hora.split(':');
+  return (+h || 0) * 3600 + (+m || 0) * 60 + (+s || 0);
+}
+
+function createdAtTs(d) {
+  const ts = Date.parse(d.createdAt || d.created_at || '');
+  return Number.isFinite(ts) ? ts : 0;
+}
+
+function idDesc(a, b) {
+  return String(b.id || '').localeCompare(String(a.id || ''), 'pt-BR', { numeric: true, sensitivity: 'base' });
+}
+
+function ordenarDiarioRecente(a, b) {
+  const porData = String(b.data || '').localeCompare(String(a.data || ''));
+  if (porData) return porData;
+
+  const horaA = horaNormalizada(a.hora) || horaFromCreatedAt(a.createdAt || a.created_at) || '00:00:00';
+  const horaB = horaNormalizada(b.hora) || horaFromCreatedAt(b.createdAt || b.created_at) || '00:00:00';
+  const porHora = segundosDaHora(horaB) - segundosDaHora(horaA);
+  if (porHora) return porHora;
+
+  const porCreatedAt = createdAtTs(b) - createdAtTs(a);
+  if (porCreatedAt) return porCreatedAt;
+
+  return idDesc(a, b);
 }
 
 function resumoComparacao(c) {
@@ -160,7 +218,7 @@ export function telaDiario(){
   const mediaDiaMes = totalMes / nd;
   const diferenca = totDia - mediaDiaMes;
   const comparacao = diaSel ? `${diferenca >= 0 ? '+' : '-'} ${Mc(Math.abs(diferenca))} ${diferenca >= 0 ? 'acima' : 'abaixo'} da média diária do mês` : '';
-  const dsDiaOrdenado = dsDia.slice().sort((a,b) => ((a.hora || '').localeCompare(b.hora || '')) || a.id.localeCompare(b.id));
+  const dsDiaOrdenado = dsDia.slice().sort(ordenarDiarioRecente);
   const maiorGastoMes = resumoMes.maiorGasto;
   const menorGastoMes = resumoMes.menorGasto;
   const diaMaisGastou = resumoMes.diaMaisGastou;
@@ -176,7 +234,7 @@ export function telaDiario(){
   const maiorDiaRotulo = diaMaisGastou ? formatDateIso(diaMaisGastou.data) : '—';
   const metaStatus = !metaMes ? 'Defina uma meta mensal' : saldoMeta >= 0 ? `${Mc(saldoMeta)} restantes` : `${Mc(Math.abs(saldoMeta))} acima da meta`;
   const menorDiaRotulo = diaMenosGastou ? formatDateIso(diaMenosGastou.data) : 'Sem dados';
-  const dsLista = diaSel ? dsDiaOrdenado : dsMes.slice().sort((a,b)=>b.data.localeCompare(a.data)||String(a.id).localeCompare(String(b.id)));
+  const dsLista = diaSel ? dsDiaOrdenado : dsMes.slice().sort(ordenarDiarioRecente);
   const categoriasDoDia = [...new Set(dsDia.map(d => d.cat))];
   const pagamentosDoDia = [...new Set(dsDia.map(d => d.pg))];
   const maiorDia = dsDia.reduce((max, d) => {
@@ -300,9 +358,9 @@ export function telaDiario(){
       ${diaSel && !qtd ? `<div class="vazio"><b>Nenhum lançamento neste dia.</b>
         <p style="margin:6px 0 14px">Use o botão abaixo para criar um gasto já com essa data.</p>
         <button class="btn btn-cofre" id="addDday">+ Novo lançamento</button></div>`
-      : dsLista.length ? `<table class="tmes"><thead><tr><th>${diaSel ? 'Horário' : 'Dia'}</th><th>O quê</th><th>Categoria</th><th>${diaSel ? 'Local' : 'Pgto'}</th><th>${diaSel ? 'Pgto' : 'Obs'}</th><th class="num">Valor</th><th>${diaSel ? 'Obs' : ''}</th><th></th></tr></thead>
+      : dsLista.length ? `<table class="tmes"><thead><tr><th>Data e hora</th><th>O quê</th><th>Categoria</th><th>${diaSel ? 'Local' : 'Pgto'}</th><th>${diaSel ? 'Pgto' : 'Obs'}</th><th class="num">Valor</th><th>${diaSel ? 'Obs' : ''}</th><th></th></tr></thead>
           <tbody>${dsLista.map(d=>`<tr class="lin" style="--c:${cor(d.cat)}">
-            <td class="mono" style="font-size:12px;color:var(--ink-2)">${esc(d.hora||'')}</td>
+        <td class="mono" style="font-size:12px;color:var(--ink-2)"><div>${formatDateIso(d.data)}</div><div>${horaExibicao(d)}</div></td>
             <td>${esc(d.desc)}</td>
             <td><span class="pill" style="background:${cor(d.cat)}1A;color:${cor(d.cat)}">${esc(d.cat)}</span></td>
             <td style="font-size:12px;color:var(--ink-2)">${diaSel ? esc(d.loc) : esc(d.pg)}</td>

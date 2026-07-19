@@ -26,7 +26,7 @@ export const conv = (v, de, para) => (v || 0) * emBRL(de) / emBRL(para);
 export function M(v, de, compacto) {
   de = de || 'BRL';
   const m = S.moeda || 'BRL', o = MOEDAS[m];
-  const d = compacto ? 0 : o.d;
+  const d = o.d;
   const n = conv(v, de, m);
   try {
     return n.toLocaleString('pt-BR', { style:'currency', currency:o.c,
@@ -49,7 +49,7 @@ export const Mc = (v, de) => M(v, de, true);
 /** Valor na moeda em que foi pago. Nunca converte. */
 export function VE(v, mo, compacto) {
   mo = mo || 'EUR';
-  const o = MOEDAS[mo], d = compacto ? 0 : o.d;
+  const o = MOEDAS[mo], d = o.d;
   try {
     return (v || 0).toLocaleString('pt-BR', { style:'currency', currency:o.c,
       currencyDisplay:'narrowSymbol', minimumFractionDigits:d, maximumFractionDigits:d });

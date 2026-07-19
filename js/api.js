@@ -70,7 +70,9 @@ const praBancoFixo = (o, uid) => ({
 const doBancoDespesa = r => ({
   id: r.id, data: d(r.data), desc: r.descricao, cat: r.categoria,
   pg: r.forma_pagamento, valor: Number(r.valor) || 0, moeda: r.moeda || 'BRL',
-  loc: r.local || '', obs: r.obs || ''
+  loc: r.local || '', obs: r.obs || '',
+  hora: r.hora || '',
+  createdAt: r.created_at || r.criado_em || null
 });
 const praBancoDespesa = (o, uid) => ({
   user_id: uid, descricao: o.desc, data: o.data, categoria: o.cat,
