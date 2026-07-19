@@ -69,7 +69,7 @@ export function telaFixos(){
         return f.length?`Faltam lançar em: <b style="color:var(--ink)">${f.join(', ')}</b>. Tudo entra como <b style="color:var(--ink)">a pagar</b>, com valor zerado — você edita cada uma quando pagar. Nada duplica o que já existe.`
                        :`De ${MESES[V.mes-1]} a dezembro de ${V.ano} já está tudo lançado.`;})()}
     </div>
-    <table><thead><tr><th style="width:44px">Ativa</th><th>Conta</th><th class="num" style="width:56px">Dia</th>
+    <div style="overflow-x:auto"><table><thead><tr><th style="width:44px">Ativa</th><th>Conta</th><th class="num" style="width:56px">Dia</th>
       <th>Categoria</th><th>Local · Pgto</th><th>Período</th><th class="num">Valor por mês</th><th style="width:96px"></th></tr></thead>
     <tbody>${S.fixos.map((f,i)=>`<tr style="opacity:${f.ativo?1:.42}">
       <td><input type="checkbox" data-fx="${i}" ${f.ativo?'checked':''} aria-label="Ativar ${esc(f.conta)}"></td>
@@ -81,5 +81,5 @@ export function telaFixos(){
       <td style="text-align:right;white-space:nowrap">
         <button class="acao" data-fxed="${i}">editar</button>
         <button class="acao del" data-fxdel="${i}">apagar</button></td></tr>`).join('')}
-    </tbody></table></div>`;
+    </tbody></table></div></div>`;
 }

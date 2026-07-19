@@ -6,11 +6,11 @@ import { S, V, VERSAO, MESES, ABAS, A0, M0, podar, noMes, esc, viagemAtual } fro
 import { MOEDAS, M, Mc } from './moeda.js';
 import { toast, baixar } from './ui.js';
 import { sb } from './supabase.js';
-import { pedirLogin, sair, sessao } from './auth.js';
-import { carregarTudo, salvarPerfil, contasApi, fixosApi, apagarTudo } from './api.js';
+import { pedirLogin, sair, sessao } from './auth.js?v=20260719-2';
+import { carregarTudo, salvarPerfil, contasApi, fixosApi, apagarTudo, despesasApi } from './api.js?v=20260719-2';
 import { propagar, limparAoApagar, vincularTodasFixas } from './propagacao.js';
 import { setRender } from './bus.js';
-import { resumoMes } from './calculos.js';
+import { resumoMes } from './calculos.js?v=20260719-2';
 import { importarBase, temBase } from './seed.js';
 import { abrirImport } from './importar.js';
 import { fita } from './fita.js';
@@ -19,7 +19,7 @@ import { iniciarRelogio } from './relogio.js';
 import { doMes, telaMes }        from './telas/mes.js';
 import { telaPainel }            from './telas/painel.js';
 import { telaAno }               from './telas/ano.js';
-import { telaDiario, formDiario } from './telas/diario.js';
+import { telaDiario, formDiario, formMetaDiario } from './telas/diario.js?v=20260719-2';
 import { telaViagem, formHosp, formGasto } from './telas/viagem.js';
 import { formViagem } from './telas/viagem_form.js';
 import { formFixo } from './telas/fixo_form.js';
@@ -30,6 +30,22 @@ import { form }                  from './telas/form_conta.js';
 
 const $ = id => document.getElementById(id);
 const on = (id, ev, fn) => { const e = $(id); if (e) e[ev] = fn; };
+const RELOAD_TOPO = 'contas:voltar-topo';
+
+function alinharNoTopo(sempre = false) {
+  const marcado = (() => {
+    try { return sessionStorage.getItem(RELOAD_TOPO) === '1'; }
+    catch (e) { return false; }
+  })();
+  const precisa = sempre || marcado || window.scrollY > Math.max(40, window.innerHeight * 0.2);
+  if (marcado) {
+    try { sessionStorage.removeItem(RELOAD_TOPO); } catch (e) {}
+  }
+  if (!precisa) return;
+  window.scrollTo(0, 0);
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
+}
 
 // ---------------------------------------------------------------------------
 //  RENDER
@@ -85,6 +101,7 @@ function liga() {
   // contas: marcar pago / a pagar
   document.querySelectorAll('[data-toggle]').forEach(b => b.onclick = async () => {
     const t = S.tx.find(x => x.id === b.dataset.toggle);
+    if (!t) return;
     const antes = { st: t.st, pago: t.pago };
     if (t.st === 'Pago') { t.st = 'Pendente'; t.pago = 0; }
     else { t.st = 'Pago'; if (!t.pago) t.pago = t.est || 0; }
@@ -94,10 +111,14 @@ function liga() {
   });
 
   document.querySelectorAll('[data-edit]').forEach(b =>
-    b.onclick = () => form(S.tx.find(x => x.id === b.dataset.edit)));
+    b.onclick = () => {
+      const t = S.tx.find(x => x.id === b.dataset.edit);
+      if (t) form(t);
+    });
 
   document.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => {
     const t = S.tx.find(x => x.id === b.dataset.del);
+    if (!t) return;
     if (!confirm(`Apagar "${t.conta}" de ${t.data.slice(8)}/${t.data.slice(5,7)}?`)) return;
     try { await contasApi.apagar(t.id); render(); toast('Conta apagada'); }
     catch (e) { toast(e.message || 'Não apagou'); }
@@ -170,8 +191,25 @@ function liga() {
   // dia a dia
   on('addD',  'onclick', () => formDiario(null));
   on('addD2', 'onclick', () => formDiario(null));
+  on('addDday','onclick', () => formDiario(null));
+  on('editMetaDiario', 'onclick', () => formMetaDiario());
   document.querySelectorAll('[data-ed]').forEach(b =>
     b.onclick = () => formDiario(S.diario.find(x => x.id === b.dataset.ed)));
+  document.querySelectorAll('[data-ed-diario]').forEach(b =>
+    b.onclick = () => formDiario(S.diario.find(x => x.id === b.dataset.edDiario)));
+  document.querySelectorAll('[data-del-diario]').forEach(b =>
+    b.onclick = async () => {
+      const d = S.diario.find(x => x.id === b.dataset.delDiario);
+      if (!d) return;
+      if (!confirm(`Apagar "${d.desc}" de ${d.data.slice(8)}/${d.data.slice(5,7)}?`)) return;
+      try { await despesasApi.apagar(d.id); render(); toast('Gasto apagado'); }
+      catch (e) { toast(e.message || 'Não apagou'); }
+    });
+  document.querySelectorAll('[data-dia]').forEach(b => b.onclick = () => {
+    const d = +b.dataset.d;
+    V.diaSel = V.diaSel === d ? null : d;
+    render();
+  });
 
   // viagem
   on('addH', 'onclick', () => formHosp(null));
@@ -266,16 +304,31 @@ document.addEventListener('keydown', e => {
 //  INÍCIO
 // ---------------------------------------------------------------------------
 async function iniciar() {
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   iniciarRelogio();          // uma vez só, no boot — nunca dentro do render()
   const s = await sessao();
   if (!s) { pedirLogin(); return; }
 
+  document.getElementById('login').innerHTML = '';
   document.getElementById('login').hidden = true;
   document.getElementById('app').hidden = false;
   document.getElementById('carregando').hidden = false;
+  alinharNoTopo(true);
+
+  const carregarComRetry = async () => {
+    try {
+      return await carregarTudo();
+    } catch (e) {
+      const msg = String(e?.message || '');
+      if (!/jwt|token|401|unauthorized/i.test(msg)) throw e;
+      const { error } = await sb.auth.refreshSession();
+      if (error) throw e;
+      return await carregarTudo();
+    }
+  };
 
   try {
-    const r = await carregarTudo();
+    const r = await carregarComRetry();
     podar();
     // primeiro login: nada no banco ainda
     if (r.contas === 0 && r.fixos === 0 && r.viagens === 0) V.aba = 'dados';
@@ -296,6 +349,7 @@ async function iniciar() {
   }
   document.getElementById('carregando').hidden = true;
   render();
+  alinharNoTopo();
 }
 
 sb.auth.onAuthStateChange((evento) => {

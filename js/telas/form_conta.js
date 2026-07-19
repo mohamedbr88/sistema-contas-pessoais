@@ -12,7 +12,8 @@ const valorMoeda  = r => Object.keys(MOEDAS).find(m => rotuloMoeda(m) === r) || 
 
 export function form(t){
   const novo=!t;
-  t=t||{id:0,data:`${V.ano}-${String(V.mes).padStart(2,'0')}-${String(V.diaSel||new Date().getDate()).padStart(2,'0')}`,
+  const diaPad = String(Math.min(V.diaSel || new Date().getDate(), new Date(V.ano, V.mes, 0).getDate())).padStart(2, '0');
+  t=t||{id:0,data:`${V.ano}-${String(V.mes).padStart(2,'0')}-${diaPad}`,
         conta:'',cat:'Outros',loc:'Pessoal',pg:'',est:0,pago:0,st:'Pendente',obs:'',moeda:S.moeda||'BRL'};
   const m=document.createElement('div');m.className='mask';
   m.innerHTML=`<div class="modal" role="dialog" aria-modal="true">
@@ -51,7 +52,9 @@ export function form(t){
   g('f_ok').onclick=async()=>{
     const n=g('f_conta').value.trim();
     if(!n){g('f_conta').focus();toast('Dá um nome pra conta');return;}
-    const o={data:g('f_data').value,conta:n,cat:g('f_cat').value,loc:g('f_loc').value,
+    const data=g('f_data').value;
+    if(!data){g('f_data').focus();toast('Informe a data de vencimento');return;}
+    const o={data,conta:n,cat:g('f_cat').value,loc:g('f_loc').value,
       pg:g('f_pg').value,est:+g('f_est').value||0,pago:+g('f_pago').value||0,st:g('f_st').value,
       obs:g('f_obs').value.trim(),moeda:g('f_moeda').value,fixoId:t.fixoId||null};
     if(o.st==='Pago'&&!o.pago) o.pago=o.est;

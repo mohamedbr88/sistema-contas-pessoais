@@ -69,11 +69,26 @@ const praBancoFixo = (o, uid) => ({
 
 const doBancoDespesa = r => ({
   id: r.id, data: d(r.data), desc: r.descricao, cat: r.categoria,
-  pg: r.forma_pagamento, valor: Number(r.valor) || 0, moeda: r.moeda || 'BRL'
+  pg: r.forma_pagamento, valor: Number(r.valor) || 0, moeda: r.moeda || 'BRL',
+  loc: r.local || '', obs: r.obs || ''
 });
 const praBancoDespesa = (o, uid) => ({
   user_id: uid, descricao: o.desc, data: o.data, categoria: o.cat,
-  forma_pagamento: o.pg, valor: o.valor || 0, moeda: o.moeda || 'BRL'
+  forma_pagamento: o.pg, valor: o.valor || 0, moeda: o.moeda || 'BRL',
+  local: o.loc || 'Pessoal', obs: o.obs || ''
+});
+
+const META_DIARIO_TAG = 'orcamento-diario';
+const chaveMetaDiario = (ano, mes) => `${META_DIARIO_TAG}:${ano}-${String(mes).padStart(2,'0')}`;
+const doBancoMeta = r => ({
+  id: r.id,
+  nome: r.nome,
+  valor: Number(r.valor_alvo) || 0,
+  valorAtual: Number(r.valor_atual) || 0,
+  moeda: r.moeda || 'BRL',
+  prazo: d(r.prazo),
+  cor: r.cor || '#D84315',
+  concluida: !!r.concluida
 });
 
 const doBancoHosp = r => ({
@@ -116,14 +131,20 @@ export async function carregarTudo() {
   const uid = await usuarioId();
   if (!uid) throw new Error('Ninguém logado.');
 
-  const [perfil, contas, fixos, despesas, viagens] = await Promise.all([
+  const [perfil, contas, fixos, despesas, viagens, metas] = await Promise.all([
     sb.from('perfis').select('*').eq('id', uid).maybeSingle(),
     sb.from('contas').select('*').gte('vencimento', INICIO).order('vencimento'),
     sb.from('fixos').select('*').order('ordem').order('descricao'),
     sb.from('despesas').select('*').gte('data', INICIO).order('data', { ascending:false }),
-    sb.from('viagens').select('*, viagem_hospedagem(*), viagem_gastos(*)').order('inicio')
+    sb.from('viagens').select('*, viagem_hospedagem(*), viagem_gastos(*)').order('inicio'),
+    sb.from('metas').select('*').order('prazo', { ascending:false }).order('criado_em', { ascending:false })
   ]);
   [perfil, contas, fixos, despesas, viagens].forEach(r => ops(r.error));
+  if (metas.error) {
+    const m = (metas.error.message || '') + ' ' + (metas.error.details || '');
+    if (/relation .*metas.* does not exist|permission denied/i.test(m)) S.metas = [];
+    else ops(metas.error);
+  }
 
   if (perfil.data) {
     S.perfil = { id: perfil.data.id, nome: perfil.data.nome, email: perfil.data.email };
@@ -135,6 +156,7 @@ export async function carregarTudo() {
   S.tx      = (contas.data   || []).map(doBancoConta);
   S.fixos   = (fixos.data    || []).map(doBancoFixo);
   S.diario  = (despesas.data || []).map(doBancoDespesa);
+  if (!metas.error) S.metas = (metas.data || []).map(doBancoMeta);
   S.viagens = (viagens.data  || []).map(v => ({
     ...doBancoViagem(v),
     hosp:   (v.viagem_hospedagem || []).map(doBancoHosp).sort((a,b)=>a.data.localeCompare(b.data)),
@@ -262,6 +284,45 @@ export const despesasApi = {
   async apagar(id) {
     const { error } = await sb.from('despesas').delete().eq('id', id);
     ops(error); S.diario = S.diario.filter(d => d.id !== id);
+  }
+};
+
+export const metasApi = {
+  chaveMetaDiario,
+  doMes(ano, mes) {
+    const chave = chaveMetaDiario(ano, mes);
+    return S.metas.find(m => m.nome === chave) || null;
+  },
+  async salvarMetaDiario(ano, mes, valor, moeda) {
+    const uid = await usuarioId();
+    const nome = chaveMetaDiario(ano, mes);
+    const prazo = `${ano}-${String(mes).padStart(2,'0')}-01`;
+    const atual = S.metas.find(m => m.nome === nome) || null;
+    const payload = {
+      user_id: uid,
+      nome,
+      valor_alvo: valor || 0,
+      valor_atual: 0,
+      moeda: moeda || 'BRL',
+      prazo,
+      cor: '#D84315',
+      concluida: false
+    };
+    if (atual) {
+      const { data, error } = await sb.from('metas').update(payload).eq('id', atual.id).select().single();
+      if (error && /relation .*metas.* does not exist|permission denied/i.test((error.message || '') + ' ' + (error.details || '')))
+        throw new Error('A tabela de metas não está disponível neste banco. Rode o schema completo do Supabase para salvar a meta mensal.');
+      ops(error);
+      Object.assign(atual, doBancoMeta(data));
+      return atual;
+    }
+    const { data, error } = await sb.from('metas').insert(payload).select().single();
+    if (error && /relation .*metas.* does not exist|permission denied/i.test((error.message || '') + ' ' + (error.details || '')))
+      throw new Error('A tabela de metas não está disponível neste banco. Rode o schema completo do Supabase para salvar a meta mensal.');
+    ops(error);
+    const nova = doBancoMeta(data);
+    S.metas.unshift(nova);
+    return nova;
   }
 };
 

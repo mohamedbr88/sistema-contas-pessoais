@@ -64,6 +64,7 @@ export const S = {
   fixos: [],     // recorrentes           → tabela public.fixos
   diario: [],    // dia a dia             → tabela public.despesas
   viagens: [],   // viagens + hosp + gastos
+  metas: [],     // metas financeiras     → tabela public.metas
   cambio: 5.35,  // 1 EUR em BRL          → perfis.cambio_eur
   usd: 5.08,     // 1 USD em BRL          → perfis.cambio_usd
   pyg: 1385.72,  // 1 BRL em PYG          → perfis.cambio_pyg

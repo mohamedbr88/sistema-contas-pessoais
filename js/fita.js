@@ -20,6 +20,9 @@ export function fita(){
   }
   el.innerHTML=h;
   el.querySelectorAll('.dia').forEach(b=>b.onclick=()=>{
-    const d=+b.dataset.d; V.diaSel=(V.diaSel===d?null:d); V.aba='mes'; render();
+    const d=+b.dataset.d;
+    V.diaSel = (V.diaSel===d?null:d);
+    if (V.aba !== 'diario') V.aba='mes';
+    render();
   });
 }

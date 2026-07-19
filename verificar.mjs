@@ -48,7 +48,8 @@ for (const [p, s] of Object.entries(mods)) {
   for (const m of s.matchAll(/import\s*(?:\{([^}]*)\}|(\w+))\s*from\s*['"]([^'"]+)['"]/g)) {
     const alvo = m[3];
     if (alvo.startsWith('http')) continue;                    // CDN, não dá para checar aqui
-    const cam = path.normalize(path.join(path.dirname(p), alvo));
+    const alvoLocal = alvo.replace(/[?#].*$/, '');
+    const cam = path.normalize(path.join(path.dirname(p), alvoLocal));
 
     if (!mods[cam]) {
       problemas.push(`${p}\n    importa de '${alvo}' — esse arquivo não existe (procurei em ${cam})`);

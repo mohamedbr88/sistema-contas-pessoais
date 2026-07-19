@@ -2,7 +2,7 @@
 //  Tela "Contas do mês": lista, filtros, ordenação por coluna.
 // ============================================================================
 
-import { contasDoMes, somaEstimado, somaPago } from '../calculos.js';
+import { contasDoMes, somaEstimado, somaPago } from '../calculos.js?v=20260719-2';
 import { CATS, LOCS, MESES, PAGS, S, V, cor, dia, esc, noMes, vencido } from '../estado.js';
 import { M } from '../moeda.js';
 
@@ -12,7 +12,7 @@ export const doMes = () => contasDoMes();
 export function telaMes(){
   let ts=doMes();
   if(V.diaSel) ts=ts.filter(t=>dia(t)===V.diaSel);
-  if(V.filtro.q){const q=V.filtro.q.toLowerCase();ts=ts.filter(t=>(t.conta+' '+t.obs).toLowerCase().includes(q));}
+  if(V.filtro.q){const q=V.filtro.q.toLowerCase();ts=ts.filter(t=>((t.conta||'')+' '+(t.obs||'')).toLowerCase().includes(q));}
   if(V.filtro.cat) ts=ts.filter(t=>t.cat===V.filtro.cat);
   if(V.filtro.loc) ts=ts.filter(t=>t.loc===V.filtro.loc);
   if(V.filtro.pg) ts=ts.filter(t=>(t.pg||'—')===V.filtro.pg);
@@ -42,10 +42,10 @@ export function telaMes(){
     <div class="card-hd">
       <div class="filtros">
         <input type="search" id="fq" placeholder="Buscar conta…" value="${esc(V.filtro.q)}">
-        <select id="fcat"><option value="">Toda categoria</option>${CATS.map(c=>`<option ${V.filtro.cat===c?'selected':''}>${c}</option>`).join('')}</select>
-        <select id="floc"><option value="">Todo local</option>${LOCS.map(c=>`<option ${V.filtro.loc===c?'selected':''}>${c}</option>`).join('')}</select>
-        <select id="fpg"><option value="">Todo pagamento</option>${PAGS.filter(p=>p).concat('—').map(c=>`<option ${V.filtro.pg===c?'selected':''}>${c}</option>`).join('')}</select>
-        <select id="fst"><option value="">Todo status</option>${['Pago','Pendente','Vencido'].map(c=>`<option ${V.filtro.st===c?'selected':''}>${c}</option>`).join('')}</select>
+        <select id="fcat"><option value="">Toda categoria</option>${CATS.map(c=>`<option value="${esc(c)}" ${V.filtro.cat===c?'selected':''}>${esc(c)}</option>`).join('')}</select>
+        <select id="floc"><option value="">Todo local</option>${LOCS.map(c=>`<option value="${esc(c)}" ${V.filtro.loc===c?'selected':''}>${esc(c)}</option>`).join('')}</select>
+        <select id="fpg"><option value="">Todo pagamento</option>${PAGS.filter(p=>p).concat('—').map(c=>`<option value="${esc(c)}" ${V.filtro.pg===c?'selected':''}>${esc(c)}</option>`).join('')}</select>
+        <select id="fst"><option value="">Todo status</option>${['Pago','Pendente','Vencido'].map(c=>`<option value="${esc(c)}" ${V.filtro.st===c?'selected':''}>${esc(c)}</option>`).join('')}</select>
         ${V.diaSel?`<button class="btn-2" id="limpaDia">dia ${V.diaSel} ✕</button>`:''}
       </div>
       <div class="dir"><button class="btn" id="add">+ Nova conta</button></div>

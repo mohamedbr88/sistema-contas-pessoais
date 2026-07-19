@@ -47,6 +47,7 @@ export const contasDoMes = (ano = V.ano, mes = V.mes) => S.tx.filter(t => noMes(
 
 /** Os gastos do dia a dia de um mês. */
 export const diarioDoMes = (ano = V.ano, mes = V.mes) => S.diario.filter(d => noMes(d, ano, mes));
+export const gastoDoMes = (ano = V.ano, mes = V.mes) => diarioDoMes(ano, mes);
 
 export const pendentes = ts => ts.filter(t => t.st === 'Pendente');
 export const pagas     = ts => ts.filter(t => t.st === 'Pago');
@@ -59,6 +60,7 @@ export const vencidas  = ts => ts.filter(vencido);
 export const somaEstimado = ts => ts.reduce((s, t) => s + emReais(t.est,   t), 0);
 export const somaPago     = ts => ts.reduce((s, t) => s + emReais(t.pago,  t), 0);
 export const somaValor    = ds => ds.reduce((s, d) => s + emReais(d.valor, d), 0);
+export const valorEmBRL   = (v, moeda = 'BRL') => conv(v || 0, moeda || 'BRL', 'BRL');
 
 /** O que ainda falta pagar: a estimativa das pendentes. */
 export const somaPendente = ts => somaEstimado(pendentes(ts));
@@ -82,6 +84,69 @@ export function agrupar(ts, campo, chaves) {
 export function agruparDiario(ds, chaves) {
   return chaves.map(k => ({ k, v: somaValor(ds.filter(d => d.cat === k)) }))
                .filter(x => x.v).sort((a, b) => b.v - a.v);
+}
+
+export function diarioPorDia(ds) {
+  return ds.reduce((acc, d) => {
+    const data = d.data;
+    acc[data] = acc[data] || [];
+    acc[data].push(d);
+    return acc;
+  }, {});
+}
+
+export function resumoDiarioMes(ano = V.ano, mes = V.mes) {
+  const dsMes = diarioDoMes(ano, mes).slice().sort((a, b) => a.data.localeCompare(b.data) || String(a.id).localeCompare(String(b.id)));
+  const total = somaValor(dsMes);
+  const porDia = diarioPorDia(dsMes);
+  const dias = Object.keys(porDia).sort();
+  const diasComGasto = dias.length;
+  const mediaPorDiaComGasto = diasComGasto ? total / diasComGasto : 0;
+  const maiorGasto = dsMes.reduce((max, d) => {
+    if (!max) return d;
+    return valorEmBRL(d.valor, d.moeda) > valorEmBRL(max.valor, max.moeda) ? d : max;
+  }, null);
+  const diaMaisGastou = dias.map(data => ({
+    data,
+    itens: porDia[data],
+    total: somaValor(porDia[data])
+  })).sort((a, b) => b.total - a.total || a.data.localeCompare(b.data))[0] || null;
+  const categoriaMaior = agruparDiario(dsMes, [...new Set(dsMes.map(d => d.cat))])[0] || null;
+  const acumulado = [];
+  let parcial = 0;
+  for (const data of dias) {
+    parcial += somaValor(porDia[data]);
+    acumulado.push({ data, total: parcial });
+  }
+
+  const prevMes = mes === 1 ? 12 : mes - 1;
+  const prevAno = mes === 1 ? ano - 1 : ano;
+  const dsAnterior = diarioDoMes(prevAno, prevMes);
+  const totalAnterior = somaValor(dsAnterior);
+  const difAnterior = total - totalAnterior;
+  const pctAnterior = totalAnterior ? (difAnterior / totalAnterior) * 100 : null;
+
+  return {
+    dsMes,
+    total,
+    quantidade: dsMes.length,
+    porDia,
+    dias,
+    diasComGasto,
+    mediaPorDiaComGasto,
+    maiorGasto,
+    diaMaisGastou,
+    categoriaMaior,
+    acumulado,
+    comparacaoAnterior: {
+      ano: prevAno,
+      mes: prevMes,
+      total: totalAnterior,
+      diferenca: difAnterior,
+      percentual: pctAnterior,
+      temDados: dsAnterior.length > 0
+    }
+  };
 }
 
 // ---------------------------------------------------------------------------

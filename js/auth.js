@@ -5,6 +5,13 @@
 import { sb, erroLegivel } from './supabase.js';
 
 const tela = () => document.getElementById('login');
+const RELOAD_TOPO = 'contas:voltar-topo';
+
+function reiniciarNoTopo() {
+  try { sessionStorage.setItem(RELOAD_TOPO, '1'); } catch (e) {}
+  window.scrollTo(0, 0);
+  location.replace(location.pathname + location.search + location.hash);
+}
 
 export async function sessao() {
   const { data } = await sb.auth.getSession();
@@ -20,6 +27,7 @@ export async function sair() {
 export function pedirLogin() {
   const el = tela();
   el.hidden = false;
+  window.scrollTo(0, 0);
   document.getElementById('app').hidden = true;
 
   let modo = 'entrar';   // entrar | criar | recuperar
@@ -70,7 +78,7 @@ export function pedirLogin() {
         if (modo === 'entrar') {
           const { error } = await sb.auth.signInWithPassword({ email, password: senha });
           if (error) throw error;
-          location.reload();
+          reiniciarNoTopo();
 
         } else if (modo === 'criar') {
           const nome = document.getElementById('l_nome').value.trim();
@@ -87,7 +95,7 @@ export function pedirLogin() {
               </div></div>`;
             return;
           }
-          location.reload();
+          reiniciarNoTopo();
 
         } else {
           const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin });

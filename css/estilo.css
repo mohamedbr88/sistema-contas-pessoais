@@ -12,8 +12,10 @@
   --r:10px; --acc:#0F6E5C;
 }
 *{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%}
 body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.45;
   -webkit-font-smoothing:antialiased;padding:0 0 80px}
+[hidden]{display:none!important}
 .wrap{max-width:1080px;margin:0 auto;padding:0 16px}
 .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
 button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
@@ -36,6 +38,7 @@ header{background:var(--card);border-bottom:1px solid var(--line);position:stick
 
 /* ---- fita de vencimentos ---- */
 .fita{background:var(--card);border:1px solid var(--line);border-radius:var(--r);margin:14px 0;overflow:hidden}
+.app-main{padding-top:14px}
 .fita-hd{display:flex;justify-content:space-between;align-items:baseline;padding:11px 14px 9px;border-bottom:1px dashed var(--line)}
 .fita-hd h2{font-family:var(--disp);font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2)}
 .fita-hd em{font-style:normal;font-size:11px;color:var(--ink-2)}
@@ -52,6 +55,12 @@ header{background:var(--card);border-bottom:1px solid var(--line);position:stick
 .tick.venc{background:var(--carimbo)}
 .dia.hoje{position:relative}
 .dia.hoje:after{content:"";position:absolute;left:50%;bottom:-1px;width:5px;height:5px;border-radius:50%;background:var(--azul);transform:translateX(-50%)}
+
+.diario-calendario{display:grid;grid-template-columns:repeat(auto-fit,minmax(40px,1fr));gap:6px;padding:14px}
+.diario-calendario .dia{min-width:auto;flex-direction:column;justify-content:center;padding:10px 8px;position:relative}
+.diario-calendario .dia.no{color:var(--ink-2);opacity:.65}
+.diario-calendario .dia.selected{background:#DDE6E4;box-shadow:inset 0 0 0 1px var(--cofre)}
+.diario-calendario .badge{position:absolute;top:6px;right:6px;background:var(--cofre);color:#fff;border-radius:999px;font-size:10px;line-height:1;padding:2px 6px}
 
 /* ---- abas ---- */
 .abas{display:flex;gap:5px;border-bottom:1px solid var(--line);margin-bottom:16px;
@@ -213,6 +222,7 @@ tr.lin:hover{background:color-mix(in srgb,var(--c) 7%,#fff)}
 
 /* ---- tela de entrada (usa os mesmos tokens do app) ---- */
 #login{min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:20px}
+#app{min-height:100dvh;align-content:start}
 .login-card{width:100%;max-width:380px;margin:0}
 .login-topo{padding:22px 16px 4px;text-align:center}
 .login-topo h1{font-family:var(--disp);font-size:26px;font-weight:700;letter-spacing:-.03em;color:var(--ink)}
@@ -222,3 +232,18 @@ tr.lin:hover{background:color-mix(in srgb,var(--c) 7%,#fff)}
 .lnk{font-size:12.5px;color:var(--ink-2);text-decoration:underline;text-underline-offset:2px;padding:4px 0}
 .lnk:hover{color:var(--cofre)}
 #carregando{padding:60px 16px;text-align:center;color:var(--ink-2);font-size:13.5px}
+@media(max-width:720px){
+  .app-main{padding-top:10px}
+}
+
+.diario-resumo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:1px;background:var(--line)}
+.diario-resumo-grid .kpi{min-height:106px}
+.kpi b.kpi-multi{display:block;font-size:16px;line-height:1.2}
+.kpi strong{display:block;font-family:var(--disp);font-size:13px;font-weight:600;letter-spacing:-.01em}
+.kpi em{display:block;font-style:normal;color:var(--ink-2);font-size:11.5px;margin-top:4px}
+.meta-linha{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:11px;color:var(--ink-2)}
+.meta-linha .pill-cat{font-size:10px}
+.grafico-diario{padding:14px}
+.grafico-diario svg{display:block;width:100%;height:auto}
+.grafico-legenda{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:10px;font-size:11px;color:var(--ink-2)}
+.grafico-legenda b{font-family:var(--mono);font-size:12px;color:var(--ink)}
