@@ -38,7 +38,24 @@ export function telaMes(){
   </tr>`).join('');
 
   const somaE=somaEstimado(ts), somaP=somaPago(ts);
-  return `<div class="card">
+  const pendentes = ts.filter(t=>t.st==='Pendente');
+  const pagas = ts.filter(t=>t.st==='Pago');
+  const qtdVencidas = ts.filter(vencido).length;
+  const somaPend = somaEstimado(pendentes);
+  const progresso = ts.length ? (pagas.length / ts.length) * 100 : 0;
+  const diferenca = somaP - somaE;
+
+  return `<section class="mes-dashboard">
+  <div class="card mes-resumo"><div class="card-hd"><h3>Resumo do recorte atual</h3></div>
+    <div class="kpis mes-resumo-kpis">
+      <div class="kpi"><span>Total estimado</span><b>${M(somaE)}</b><small>${ts.length} conta${ts.length===1?'':'s'} no recorte</small></div>
+      <div class="kpi"><span>Total pago</span><b>${M(somaP)}</b><small>${pagas.length} conta${pagas.length===1?'':'s'} paga${pagas.length===1?'':'s'}</small></div>
+      <div class="kpi"><span>Total pendente</span><b>${M(somaPend)}</b><small>${pendentes.length} conta${pendentes.length===1?'':'s'} a pagar</small></div>
+      <div class="kpi"><span>Vencidas</span><b>${qtdVencidas}</b><small>${progresso.toFixed(0)}% concluído · saldo ${diferenca>=0?'+':''}${M(diferenca)}</small></div>
+    </div>
+  </div>
+
+  <div class="card">
     <div class="card-hd">
       <div class="filtros">
         <input type="search" id="fq" placeholder="Buscar conta…" value="${esc(V.filtro.q)}">
@@ -61,5 +78,6 @@ export function telaMes(){
           <p style="margin:6px 0 14px">Lance aqui as ${S.fixos.filter(f=>f.ativo).length} contas fixas de julho — mesmas descrições e estimativas, com o valor pago zerado.</p>
           <button class="btn btn-cofre" id="gerarAqui">Lançar as fixas em ${MESES[V.mes-1]}</button>
           <button class="btn-2" id="add2" style="margin-left:6px">+ Nova conta</button></div>`)}
-  </div>`;
+  </div>
+  </section>`;
 }

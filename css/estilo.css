@@ -243,6 +243,9 @@ tr.lin:hover{background:color-mix(in srgb,var(--c) 7%,#fff)}
 
 .diario-resumo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:1px;background:var(--line)}
 .diario-resumo-grid .kpi{min-height:106px}
+.mes-dashboard{display:grid;gap:14px}
+.mes-resumo{border-color:#D9E7E3;box-shadow:0 10px 24px rgba(15,110,92,.06)}
+.mes-resumo-kpis .kpi{min-height:98px}
 .kpi b.kpi-multi{display:block;font-size:16px;line-height:1.2}
 .kpi strong{display:block;font-family:var(--disp);font-size:13px;font-weight:600;letter-spacing:-.01em}
 .kpi em{display:block;font-style:normal;color:var(--ink-2);font-size:11.5px;margin-top:4px}
@@ -318,6 +321,7 @@ tr.lin:hover{background:color-mix(in srgb,var(--c) 7%,#fff)}
   .diario-dia-grid{grid-template-columns:1fr}
   .grafico-cabecalho{padding-top:12px}
   .diario-resumo-grid,.diario-resumo-mensal{grid-template-columns:1fr}
+  .mes-resumo-kpis{grid-template-columns:1fr}
   .diario-calendario{grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;padding:12px}
   .diario-calendario .dia{padding:10px 4px 8px}
   .diario-calendario .badge{top:4px;right:4px;padding:2px 5px}

@@ -16,7 +16,7 @@ import { abrirImport } from './importar.js';
 import { fita } from './fita.js';
 import { iniciarRelogio } from './relogio.js';
 
-import { doMes, telaMes }        from './telas/mes.js';
+import { doMes, telaMes }        from './telas/mes.js?v=20260719-1';
 import { telaPainel }            from './telas/painel.js';
 import { telaAno }               from './telas/ano.js';
 import { telaDiario, formDiario, formMetaDiario } from './telas/diario.js?v=20260719-5';
