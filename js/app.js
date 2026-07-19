@@ -19,7 +19,7 @@ import { iniciarRelogio } from './relogio.js';
 import { doMes, telaMes }        from './telas/mes.js';
 import { telaPainel }            from './telas/painel.js';
 import { telaAno }               from './telas/ano.js';
-import { telaDiario, formDiario, formMetaDiario } from './telas/diario.js?v=20260719-4';
+import { telaDiario, formDiario, formMetaDiario } from './telas/diario.js?v=20260719-5';
 import { telaViagem, formHosp, formGasto } from './telas/viagem.js';
 import { formViagem } from './telas/viagem_form.js';
 import { formFixo } from './telas/fixo_form.js';

@@ -52,7 +52,8 @@ function pontosGrafico(acumulado, nd) {
     totais.push({ dia, total: parcial });
   }
   const max = Math.max(...totais.map(p => p.total), 0);
-  const w = 700, h = 240, padX = 48, padY = 24;
+  const mobile = typeof window !== 'undefined' && window.innerWidth <= 720;
+  const w = 700, h = mobile ? 176 : 150, padX = 48, padY = mobile ? 22 : 20;
   const usableW = w - padX * 2;
   const usableH = h - padY * 2;
   const pts = totais.map((p, idx) => {
@@ -235,7 +236,7 @@ export function telaDiario(){
         <div class="grafico-legend-inline"><span><i></i>Linha acumulada</span><span><i class="dot"></i>Dia com lançamento</span></div>
       </div>
       <div class="grafico-diario">
-        <svg viewBox="0 0 ${grafico.w} ${grafico.h}" role="img" aria-label="Gastos acumulados do mês">
+        <svg class="diario-evolucao" viewBox="0 0 ${grafico.w} ${grafico.h}" role="img" aria-label="Gastos acumulados do mês">
           <rect x="0" y="0" width="${grafico.w}" height="${grafico.h}" rx="10" fill="#F7FAF9"></rect>
           ${grafico.ticksY.map(t => `<g><line x1="${grafico.padX}" y1="${t.y.toFixed(1)}" x2="${grafico.w - grafico.padX}" y2="${t.y.toFixed(1)}" stroke="#D7E2E0" stroke-dasharray="4 4"></line><text x="10" y="${(t.y + 4).toFixed(1)}" font-size="11" fill="#5C7079">${esc(Mc(t.valor))}</text></g>`).join('')}
           <polyline fill="none" stroke="#D84315" stroke-width="3.5" points="${grafico.pts}"></polyline>
@@ -284,11 +285,13 @@ export function telaDiario(){
           ${!resumoMes.quantidade
             ? `<div class="vazio" style="width:100%;padding:26px 16px">Sem gasto lançado.</div>`
             : `<div class="diario-gasto-dia-bars">${gastoPorDia.itens.map(item => {
-                const altura = gastoPorDia.max ? (item.total / gastoPorDia.max) * 100 : 0;
+                const alturaBase = gastoPorDia.max ? (item.total / gastoPorDia.max) * 100 : 0;
+                const altura = item.total > 0 ? Math.max(alturaBase, 3.2) : 0;
                 const destaque = gastoPorDia.diaMaisGasto && gastoPorDia.diaMaisGasto.dia === item.dia;
-                return `<div class="diario-dia-col"><button class="diario-dia-bar${item.total ? '' : ' zero'}${destaque ? ' is-max' : ''}${diaSel === item.dia ? ' selected' : ''}" data-dia="${item.dia}" title="${esc(tooltipGastoDiaMes(item, V.ano, V.mes))}" aria-label="Dia ${item.dia}: ${Mc(item.total)}" style="height:${altura.toFixed(2)}%"></button><span class="diario-dia-col-label">${item.dia}</span></div>`;
+                return `<button class="diario-dia-bar${item.total ? '' : ' zero'}${destaque ? ' is-max' : ''}${diaSel === item.dia ? ' selected' : ''}" data-dia="${item.dia}" title="${esc(tooltipGastoDiaMes(item, V.ano, V.mes))}" aria-label="Dia ${item.dia}: ${Mc(item.total)}" style="height:${altura.toFixed(2)}%"></button>`;
               }).join('')}</div>
-              <div class="diario-gasto-dia-meta"><span class="mono">${formatDate(V.ano, V.mes, 1)}</span><span class="mono">maior dia: ${gastoPorDia.diaMaisGasto ? `${formatDateIso(gastoPorDia.diaMaisGasto.data)} · ${Mc(gastoPorDia.diaMaisGasto.total)}` : 'Sem dados'}</span><span class="mono">${formatDate(V.ano, V.mes, nd)}</span></div>`}
+              <div class="diario-gasto-dia-labels">${gastoPorDia.itens.map(item => `<span class="diario-dia-col-label">${item.dia}</span>`).join('')}</div>
+              <div class="diario-gasto-dia-meta"><span class="mono">total do mês: ${Mc(gastoPorDia.totalDias)}</span><span class="mono">maior dia: ${gastoPorDia.diaMaisGasto ? formatDateIso(gastoPorDia.diaMaisGasto.data) : 'Sem dados'}</span><span class="mono">valor do maior dia: ${gastoPorDia.diaMaisGasto ? Mc(gastoPorDia.diaMaisGasto.total) : 'Sem dados'}</span></div>`}
         </div>
       </div>
     </div>
