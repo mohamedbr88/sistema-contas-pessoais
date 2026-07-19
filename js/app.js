@@ -8,9 +8,13 @@ import { toast, baixar } from './ui.js';
 import { sb } from './supabase.js';
 import { pedirLogin, sair, sessao } from './auth.js';
 import { carregarTudo, salvarPerfil, contasApi, fixosApi, apagarTudo } from './api.js';
+import { propagar, limparAoApagar, vincularTodasFixas } from './propagacao.js';
 import { setRender } from './bus.js';
+import { resumoMes } from './calculos.js';
+import { importarBase, temBase } from './seed.js';
 import { abrirImport } from './importar.js';
 import { fita } from './fita.js';
+import { iniciarRelogio } from './relogio.js';
 
 import { doMes, telaMes }        from './telas/mes.js';
 import { telaPainel }            from './telas/painel.js';
@@ -18,8 +22,10 @@ import { telaAno }               from './telas/ano.js';
 import { telaDiario, formDiario } from './telas/diario.js';
 import { telaViagem, formHosp, formGasto } from './telas/viagem.js';
 import { formViagem } from './telas/viagem_form.js';
-import { telaFixos, gerarMes, gerarAno, formFixo } from './telas/fixos.js';
+import { formFixo } from './telas/fixo_form.js';
+import { telaFixos, gerarMes, gerarAno }   from './telas/fixos.js';
 import { telaDados }             from './telas/dados.js';
+import { telaDiagnostico, executarSincronizacao } from './telas/diagnostico.js';
 import { form }                  from './telas/form_conta.js';
 
 const $ = id => document.getElementById(id);
@@ -36,11 +42,11 @@ export function render() {
   $('mesNome').textContent = MESES[V.mes - 1];
   $('anoNome').textContent = V.ano;
 
-  const ts = doMes();
-  const pend = ts.filter(t => t.st === 'Pendente').reduce((s, t) => s + (t.est || 0), 0);
-  $('hFalta').textContent = pend ? M(pend) : 'nada';
-  $('hPago').textContent  = M(ts.reduce((s, t) => s + (t.pago || 0), 0));
-  $('cMes').textContent   = ts.length || '';
+  // o cabeçalho lê do MESMO motor que o painel: não tem como discordarem
+  const r = resumoMes();
+  $('hFalta').textContent = r.pendente ? M(r.pendente) : 'nada';
+  $('hPago').textContent  = M(r.pago);
+  $('cMes').textContent   = r.nContas || '';
   $('cFix').textContent   = S.fixos.filter(f => f.ativo).length;
   $('cDia').textContent   = S.diario.filter(d => noMes(d, V.ano, V.mes)).length || '';
   $('ver').textContent    = VERSAO + ' · ' + S.tx.length + ' contas';
@@ -58,7 +64,8 @@ export function render() {
   $('tela').innerHTML =
     V.aba === 'mes'    ? telaMes()    : V.aba === 'painel' ? telaPainel() :
     V.aba === 'ano'    ? telaAno()    : V.aba === 'diario' ? telaDiario() :
-    V.aba === 'viagem' ? telaViagem() : V.aba === 'fixos'  ? telaFixos()  : telaDados();
+    V.aba === 'viagem' ? telaViagem() : V.aba === 'fixos'  ? telaFixos()  :
+    V.aba === 'diagnostico' ? telaDiagnostico() : telaDados();
 
   fita();
   liga();
@@ -128,19 +135,37 @@ function liga() {
   // fixos
   document.querySelectorAll('[data-fx]').forEach(c => c.onchange = async () => {
     const f = S.fixos[c.dataset.fx];
-    try { await fixosApi.ativar(f.id, c.checked); render(); }
-    catch (e) { c.checked = !c.checked; toast(e.message); }
+    try {
+      await fixosApi.ativar(f.id, c.checked);
+      // após ativar/desativar, propaga imediatamente para ajustar lançamentos
+      const f2 = S.fixos.find(x => x.id === f.id);
+      try { await propagar(f2); } catch (e) { /* falha na propagação não bloqueia */ }
+      render();
+    } catch (e) { c.checked = !c.checked; toast(e.message); }
   });
   document.querySelectorAll('[data-fxdel]').forEach(b => b.onclick = async () => {
     const f = S.fixos[b.dataset.fxdel];
     if (!confirm(`Tirar "${f.conta}" das fixas?`)) return;
-    try { await fixosApi.apagar(f.id); render(); } catch (e) { toast(e.message); }
+    try {
+      // solta pendentes futuras e depois apaga a fixa
+      await limparAoApagar(f.id);
+      await fixosApi.apagar(f.id);
+      render();
+    } catch (e) { toast(e.message); }
   });
   on('gerar',    'onclick', gerarMes);
   on('gerarAno', 'onclick', gerarAno);
-  on('addFixo', 'onclick', () => formFixo(null));
-  document.querySelectorAll('[data-fxedit]').forEach(b =>
-    b.onclick = () => formFixo(S.fixos[+b.dataset.fxedit]));
+  on('novaFixa', 'onclick', () => formFixo(null));
+  document.querySelectorAll('[data-fxed]').forEach(b =>
+    b.onclick = () => formFixo(S.fixos[b.dataset.fxed]));
+
+  // diagnostico: botao de execução da rotina
+  const diagBtn = document.getElementById('diag_run');
+  if (diagBtn) diagBtn.onclick = async () => {
+    diagBtn.disabled = true; diagBtn.textContent = 'Sincronizando...';
+    try { await executarSincronizacao(); } catch (e) { toast(e.message || 'Erro'); }
+    diagBtn.disabled = false; diagBtn.textContent = 'Executar sincronização';
+  };
 
   // dia a dia
   on('addD',  'onclick', () => formDiario(null));
@@ -149,15 +174,17 @@ function liga() {
     b.onclick = () => formDiario(S.diario.find(x => x.id === b.dataset.ed)));
 
   // viagem
-  on('novaViagem', 'onclick', () => formViagem(null));
-  on('editarViagem', 'onclick', () => formViagem(viagemAtual()));
-  on('selViagem', 'onchange', e => { V.viagemId = e.target.value; render(); });
   on('addH', 'onclick', () => formHosp(null));
   on('addG', 'onclick', () => formGasto(null));
   document.querySelectorAll('[data-eh]').forEach(b =>
-    b.onclick = () => { const v = S.viagens.find(x => x.id === V.viagemId) || S.viagens[0]; formHosp(v.hosp.find(x => x.id === b.dataset.eh)); });
+    b.onclick = () => formHosp(viagemAtual()?.hosp.find(x => x.id === b.dataset.eh)));
   document.querySelectorAll('[data-eg]').forEach(b =>
     b.onclick = () => formGasto(b.dataset.eg));
+
+  // trocar de viagem, criar e editar
+  on('selViagem', 'onchange', e => { V.viagemId = e.target.value; render(); });
+  on('novaViagem', 'onclick', () => formViagem(null));
+  on('editarViagem', 'onclick', () => formViagem(viagemAtual()));
 
   // importar OFX/CSV
   on('impExt', 'onclick', () => $('impExtFile').click());
@@ -188,6 +215,17 @@ function liga() {
   on('expJson', 'onclick', () => baixar(`contas-backup-${new Date().toISOString().slice(0,10)}.json`,
     JSON.stringify({ tx:S.tx, fixos:S.fixos, diario:S.diario, viagens:S.viagens }, null, 1), 'application/json'));
   on('expCsv', 'onclick', expCsv);
+
+  on('semear', 'onclick', async () => {
+    if (temBase() && !confirm('Sua conta já tem dados. Importar a base inicial vai duplicar. Continuar mesmo assim?')) return;
+    const b = $('semear'); b.disabled = true;
+    try {
+      const r = await importarBase(txt => { b.textContent = txt; });
+      await carregarTudo(); podar(); render();
+      toast(`Base importada: ${r.contas} contas, ${r.gastos} gastos da viagem`);
+    } catch (e) { toast(e.message || 'Não importou'); }
+    finally { b.disabled = false; b.textContent = 'Importar base inicial'; }
+  });
 
   on('zerar', 'onclick', async () => {
     if (!confirm('Apagar TODAS as suas contas, fixas, dia a dia e viagens do Supabase?\n\nIsso não tem volta. Baixe o backup antes.')) return;
@@ -228,6 +266,7 @@ document.addEventListener('keydown', e => {
 //  INÍCIO
 // ---------------------------------------------------------------------------
 async function iniciar() {
+  iniciarRelogio();          // uma vez só, no boot — nunca dentro do render()
   const s = await sessao();
   if (!s) { pedirLogin(); return; }
 
@@ -240,6 +279,14 @@ async function iniciar() {
     podar();
     // primeiro login: nada no banco ainda
     if (r.contas === 0 && r.fixos === 0 && r.viagens === 0) V.aba = 'dados';
+    // Vincula automaticamente lançamentos antigos sem fixo_id em background
+    try {
+      vincularTodasFixas().then(res => {
+        if (res && res.total) {
+          podar(); render(); toast(`${res.total} lançamento(s) antigo(s) vinculados automaticamente`);
+        }
+      }).catch(() => {});
+    } catch (e) {}
   } catch (e) {
     document.getElementById('carregando').innerHTML =
       `<div class="vazio"><b style="color:var(--carimbo)">Não consegui falar com o Supabase</b>

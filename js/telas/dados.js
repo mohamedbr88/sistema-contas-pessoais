@@ -55,11 +55,14 @@ export function telaDados(){
     <div style="padding:14px;display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn-2" id="expJson">Baixar backup (.json)</button>
       <button class="btn-2" id="expCsv">Baixar planilha (.csv)</button>
+      <button class="btn-2" id="semear">Importar base inicial</button>
       <button class="btn-2" id="zerar" style="color:var(--carimbo)">Apagar tudo</button>
     </div>
     <div style="padding:0 14px 14px;font-size:12.5px;color:var(--ink-2)">
       O Supabase já guarda tudo — o backup é a sua garantia extra, caso queira levar embora.
-<br>      Versão <b style="color:var(--ink)">${VERSAO}</b> · <b style="color:var(--ink)">${S.tx.length}</b> contas ·
+      <b style="color:var(--ink)">Importar base inicial</b> grava na sua conta os 193 lançamentos de mai–dez/2026
+      e a viagem da Espanha (só faz sentido no primeiro login).<br><br>
+      Versão <b style="color:var(--ink)">${VERSAO}</b> · <b style="color:var(--ink)">${S.tx.length}</b> contas ·
       <b style="color:var(--ink)">${S.diario.length}</b> gastos do dia a dia ·
       <b style="color:var(--ink)">${S.fixos.length}</b> fixas · ${anos.join(', ')||'nada ainda'}
     </div></div>`;

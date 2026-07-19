@@ -2,11 +2,11 @@
 //  Tela "Dia a dia": gasto solto do mês (mercado, restaurante, uber).
 // ============================================================================
 
+import { contasDoMes, somaPago } from '../calculos.js';
 import { doMes } from './mes.js';
 import { CATD, MESES, PAGD, S, V, cor, dia, esc, hojeISO, noMes } from '../estado.js';
-import { M, Mc, outra } from '../moeda.js';
+import { M, MOEDAS, Mc, outra } from '../moeda.js';
 import { formGen } from '../ui.js';
-import { despesasApi } from '../api.js';
 
 export function telaDiario(){
   const ds=S.diario.filter(d=>noMes(d,V.ano,V.mes)).sort((a,b)=>b.data.localeCompare(a.data)||b.id-a.id);
@@ -14,7 +14,7 @@ export function telaDiario(){
   const dias=new Set(ds.map(d=>d.data)).size;
   const porCat=CATD.map(c=>({k:c,v:ds.filter(d=>d.cat===c).reduce((s,d)=>s+d.valor,0)})).filter(x=>x.v).sort((a,b)=>b.v-a.v);
   const max=Math.max(...porCat.map(x=>x.v),1);
-  const contasMes=doMes().reduce((s,t)=>s+(t.pago||0),0);
+  const contasMes=somaPago(contasDoMes());
   return `<div class="card"><div class="kpis">
       <div class="kpi"><span>Gasto do dia a dia</span><b>${Mc(tot)}</b><small>${ds.length} lançamento(s)</small></div>
       <div class="kpi"><span>Por dia</span><b>${Mc(dias?tot/dias:0)}</b><small>${dias} dia(s) com gasto</small></div>
@@ -41,17 +41,22 @@ export function telaDiario(){
       <button class="btn btn-cofre" id="addD2">+ Primeiro gasto</button></div>`}
     </div>`;
 }
+const rotuloMoeda = m => `${MOEDAS[m].n}  ${m}`;
+const valorMoeda  = r => Object.keys(MOEDAS).find(m => rotuloMoeda(m) === r) || 'BRL';
+
 export function formDiario(d){
   const novo=!d;
-  d=d||{id:0,data:hojeISO.slice(0,8)+String(Math.min(new Date().getDate(),new Date(V.ano,V.mes,0).getDate())).padStart(2,'0'),desc:'',cat:'Restaurante',pg:'Cartão',valor:0};
+  d=d||{id:0,data:hojeISO.slice(0,8)+String(Math.min(new Date().getDate(),new Date(V.ano,V.mes,0).getDate())).padStart(2,'0'),desc:'',cat:'Restaurante',pg:'Cartão',valor:0,moeda:S.moeda||'BRL'};
   if(novo) d.data=`${V.ano}-${String(V.mes).padStart(2,'0')}-${d.data.slice(8)}`;
   formGen(novo?'Novo gasto do dia':'Editar gasto',[
     {k:'desc',l:'O quê',ph:'Ex.: Mercado, Uber, jantar'},
     {k:'data',l:'Dia',tipo:'date'},
-    {k:'valor',l:'Valor em R$ (moeda do dia a dia)',tipo:'number'},
+    {k:'valor',l:'Valor',tipo:'number'},
+    {k:'moeda',l:'Moeda',tipo:'select',opts:Object.keys(MOEDAS).map(rotuloMoeda)},
     {k:'cat',l:'Categoria',tipo:'select',opts:CATD},
     {k:'pg',l:'Pagamento',tipo:'select',opts:PAGD},
-  ], d, async o=>{
+  ], {...d, moeda: rotuloMoeda(d.moeda||'BRL')}, async o=>{
+    o.moeda = valorMoeda(o.moeda);
     if(novo) await despesasApi.inserir(o);
     else     await despesasApi.atualizar(d.id, o);
   }, novo ? null : async()=>{ await despesasApi.apagar(d.id); });

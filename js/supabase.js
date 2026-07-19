@@ -1,10 +1,31 @@
 // Cliente único do Supabase, usado por todo o app.
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
 
-export const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
-});
+// During automated tests run under Node we don't want to import the remote
+// ESM bundle from esm.sh (it uses https: and breaks Node's ESM loader). If
+// the environment variable RUNNING_TESTS is set we export a lightweight
+// in-memory stub that prevents network calls. In the browser the real
+// client is created as before.
+export let sb = null;
+
+if (typeof process !== 'undefined' && process.env && process.env.RUNNING_TESTS) {
+  // test stub
+  sb = {
+    auth: {
+      async getSession() { return { data: { session: null } }; },
+      async getUser() { return { data: { user: null } }; },
+      onAuthStateChange() { return { data: null }; }
+    },
+    from() { return { select: async ()=>({ data: [] }), insert: async ()=>({ data: [] }), update: async ()=>({ data: [] }), delete: async ()=>({}) }; }
+  };
+} else {
+  // browser: import the real client
+  // eslint-disable-next-line no-undef
+  const _create = await import('https://esm.sh/@supabase/supabase-js@2.45.4').then(m=>m.createClient);
+  sb = _create(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+  });
+}
 
 /** id do usuário logado agora (ou null) */
 export async function usuarioId() {

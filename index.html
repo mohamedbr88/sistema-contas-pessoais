@@ -22,6 +22,11 @@
 <!-- o app: só aparece com sessão válida -->
 <div id="app" hidden>
 <header>
+  <div class="wrap barra-topo">
+    <span id="relogioData">—</span>
+    <span class="mono" id="relogioHora">--:--</span>
+    <span class="mono relogio-tz" id="relogioTz"></span>
+  </div>
   <div class="wrap hd">
     <div class="nav-mes">
       <button id="prev" title="Mês anterior" aria-label="Mês anterior">‹</button>
@@ -53,6 +58,7 @@
     <button class="aba" data-t="diario">Dia a dia <i id="cDia"></i></button>
     <button class="aba" data-t="viagem">Viagem</button>
     <button class="aba" data-t="fixos">Fixos <i id="cFix"></i></button>
+    <button class="aba" data-t="diagnostico">Diagnóstico</button>
     <button class="aba" data-t="dados">Dados</button>
   </nav>
 

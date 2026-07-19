@@ -30,11 +30,7 @@ export const CATD = ['Bar','Compras','Entretenimento','Hospedagem','Mercado','Re
 export const LOCS = ['Apartamento','Chácara','Miro','Pessoal'];
 export const PAGS = ['','Boleto','Bradesco','C6','Conta corrente','Dinheiro','Nubank','Picpay','Pix','Santander'];
 export const PAGD = ['Cartão','Dinheiro','Pix'];
-export const STATUS = {
-  planejamento: 'Planejamento',
-  em_viagem: 'Em viagem',
-  concluida: 'Concluída'
-};
+
 export const CORES = {
   'Aluguel':'#2F4F9E','Assinaturas':'#7A3E9D','Associações':'#A85B00','Cartão/Banco':'#B4232A',
   'Compras':'#C2185B','Condomínio':'#00695C','Contabilidade':'#455A64','Energia':'#B98900',
@@ -53,6 +49,9 @@ export const ABAS = {
   fixos:  { n:'Fixos',         c:'#B98900' },
   dados:  { n:'Dados',         c:'#5C7079' }
 };
+
+// aba temporária para diagnósticos (remover depois)
+ABAS.diagnostico = { n:'Diagnóstico', c:'#333' };
 
 export const cor = c => CORES[c] || '#78909C';
 export const cap = s => s ? s[0].toUpperCase() + s.slice(1) : 'Outros';
@@ -80,7 +79,7 @@ export const V = {
   mes: 7,
   aba: 'mes',
   diaSel: null,
-  viagemId: null,
+  viagemId: null,          // qual viagem está aberta na aba Viagem
   filtro: { q:'', cat:'', loc:'', pg:'', st:'' },
   ord: { col:'data', dir:1 }
 };
@@ -101,22 +100,44 @@ export const val     = t => t.st === 'Pago' ? (t.pago || 0) : (t.est || 0);
 // os ids agora são uuid do banco; isto sobrou só para chaves locais de lista
 export const novoId = () => crypto.randomUUID();
 
-export function podar() {
-  const antes = S.tx.length + S.diario.length;
-  S.tx = S.tx.filter(t => t.data >= INICIO);
-  S.diario = S.diario.filter(d => d.data >= INICIO);
-  return antes - (S.tx.length + S.diario.length);
+// ---------------------------------------------------------------------------
+//  Viagem selecionada
+//
+//  Nada mais lê S.viagens[0]. Quem manda é V.viagemId; quando ele não aponta
+//  para nada (primeira abertura, ou a viagem foi apagada), viagemPadrao()
+//  escolhe sozinha — e escolhe a que você provavelmente quer ver.
+// ---------------------------------------------------------------------------
+
+/** A que faz sentido abrir hoje: a de agora > a próxima > a mais recente. */
+export function viagemPadrao() {
+  if (!S.viagens.length) return null;
+  const agora = S.viagens.find(v => v.inicio <= hojeISO && hojeISO <= v.fim);
+  if (agora) return agora;
+  const futuras = S.viagens.filter(v => v.inicio > hojeISO)
+                           .sort((a, b) => a.inicio.localeCompare(b.inicio));
+  if (futuras.length) return futuras[0];
+  return [...S.viagens].sort((a, b) => b.inicio.localeCompare(a.inicio))[0];
 }
 
+/** A viagem aberta agora. Nunca devolve a errada; devolve null se não há nenhuma. */
 export function viagemAtual() {
-  if (!S.viagens.length) return null;
+  const v = S.viagens.find(x => x.id === V.viagemId);
+  if (v) return v;
+  const p = viagemPadrao();
+  V.viagemId = p ? p.id : null;
+  return p;
+}
 
-  if (V.viagemId) {
-    const encontrada = S.viagens.find(v => v.id === V.viagemId);
-    if (encontrada) return encontrada;
-  }
+export const STATUS = {
+  planejamento: 'Planejamento',
+  em_viagem:    'Em viagem',
+  concluida:    'Concluída'
+};
 
-  return [...S.viagens].sort((a, b) =>
-    String(b.inicio || '').localeCompare(String(a.inicio || ''))
-  )[0];
+/** Corta tudo que for anterior a INICIO. Roda em toda abertura. */
+export function podar() {
+  const antes = S.tx.length + S.diario.length;
+  S.tx     = S.tx.filter(t => t.data >= INICIO);
+  S.diario = S.diario.filter(d => d.data >= INICIO);
+  return antes - (S.tx.length + S.diario.length);
 }

@@ -187,6 +187,17 @@ tr.lin:hover{background:color-mix(in srgb,var(--c) 7%,#fff)}
 }
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 
+/* ---- relógio do topo ---- */
+.barra-topo{display:flex;align-items:center;gap:10px;padding:6px 16px 5px;
+  border-bottom:1px solid var(--line);font-size:11.5px;color:var(--ink-2)}
+.barra-topo .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+#relogioHora{font-weight:600;color:var(--ink);font-size:12.5px;letter-spacing:-.01em}
+.relogio-tz{margin-left:auto;opacity:.6;font-size:10px;letter-spacing:.03em}
+@media(max-width:720px){
+  .barra-topo{padding:5px 16px 4px;font-size:11px;gap:8px}
+  .relogio-tz{display:none}
+}
+
 /* ---- barra da viagem: seletor, status e câmbio ---- */
 .viagem-sub{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
   padding:8px 14px;border-bottom:1px solid var(--line);font-size:11.5px;color:var(--ink-2)}
@@ -211,10 +222,3 @@ tr.lin:hover{background:color-mix(in srgb,var(--c) 7%,#fff)}
 .lnk{font-size:12.5px;color:var(--ink-2);text-decoration:underline;text-underline-offset:2px;padding:4px 0}
 .lnk:hover{color:var(--cofre)}
 #carregando{padding:60px 16px;text-align:center;color:var(--ink-2);font-size:13.5px}
-/* Quando o login estiver oculto, não ocupar espaço */
-#login[hidden] {
-  display: none !important;
-  min-height: 0 !important;
-  height: 0 !important;
-  padding: 0 !important;
-}

@@ -45,7 +45,8 @@ export function pedirLogin() {
           </button>
           <div class="login-links">
             ${modo === 'entrar'
-              ? ``
+              ? `<button class="lnk" data-m="criar">Não tenho conta</button>
+                 <button class="lnk" data-m="recuperar">Esqueci a senha</button>`
               : `<button class="lnk" data-m="entrar">← Voltar para entrar</button>`}
           </div>
         </div>

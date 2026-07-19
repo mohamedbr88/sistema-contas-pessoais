@@ -2,12 +2,13 @@
 //  Tela "Ano": categoria x 12 meses.
 // ============================================================================
 
+import { pagoNoMes } from '../calculos.js';
 import { A0, CATS, MESES, S, V, cor, esc } from '../estado.js';
 import { M, Mc } from '../moeda.js';
 
 export function telaAno(){
   const anos=[...new Set(S.tx.map(t=>+t.data.slice(0,4)))].filter(a=>a>=A0).sort();
-  const pagoDe=(cat,m)=>S.tx.filter(t=>+t.data.slice(0,4)===V.ano&&+t.data.slice(5,7)===m&&(!cat||t.cat===cat)).reduce((s,t)=>s+(t.pago||0),0);
+  const pagoDe=(cat,m)=>pagoNoMes(V.ano,m,cat);
   const cats=CATS.filter(c=>S.tx.some(t=>+t.data.slice(0,4)===V.ano&&t.cat===c&&t.pago));
   const linhas=cats.map(c=>{
     const vs=[...Array(12)].map((_,i)=>pagoDe(c,i+1)), tot=vs.reduce((a,b)=>a+b,0);

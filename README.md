@@ -69,13 +69,17 @@ Pronto. Clique nesse botão **uma vez só** — apertar de novo duplica tudo.
 index.html              a única página
 css/estilo.css          todo o visual (o mesmo de antes — nada mudou de desenho)
 assets/                 ícone e manifest (dá para instalar como app no celular)
-supabase/schema.sql     o banco inteiro: tabelas, índices, RLS, triggers, storage
+supabase/schema.sql              o banco: tabelas, índices, RLS, triggers, storage
+supabase/002_multiviagem.sql     colunas de múltiplas viagens
+supabase/003_fixos_vinculo.sql   vínculo fixo→conta, período das fixas, data de pagamento
 js/
   config.js             ⬅️ AS SUAS CHAVES VÃO AQUI
   supabase.js           o cliente, e a tradução dos erros para português
   auth.js               entrar, criar conta, esqueci a senha
   api.js                a ÚNICA porta de entrada do banco (CRUD + tradutores)
   estado.js             S (seus dados) e V (o que está na tela) + constantes
+  calculos.js           TODOS os totais. Se um número está errado, é aqui.
+  relogio.js            o relógio do topo (um setInterval, ligado no boot)
   moeda.js              conversão e formatação de R$ / US$ / € / ₲
   ui.js                 aviso, formulário genérico, download
   seed.js               a base inicial (apague depois de importar, se quiser)
@@ -114,6 +118,18 @@ nenhuma tela precisou mudar de desenho na migração.
 - **Anexos**: tabela e bucket prontos, sem botão de upload ainda.
 - O app não sincroniza em tempo real entre dois aparelhos abertos ao mesmo tempo.
   Recarregar a página traz o que o outro gravou. (Supabase Realtime resolveria.)
+
+## Antes de todo deploy: `node verificar.mjs`
+
+```bash
+node verificar.mjs
+```
+
+Leva 1 segundo, não instala nada. Ele confere se cada nome importado existe
+mesmo no módulo de origem — que é o que o `node --check` **não** confere e o que
+deixa a tela branca com *"does not provide an export named X"*.
+
+Se sair `✓ todos os imports resolvem`, pode subir.
 
 ## Rodar na sua máquina
 
