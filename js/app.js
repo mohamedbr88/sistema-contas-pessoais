@@ -10,7 +10,7 @@ import { pedirLogin, sair, sessao } from './auth.js?v=20260719-3';
 import { carregarTudo, salvarPerfil, contasApi, fixosApi, apagarTudo, despesasApi } from './api.js?v=20260719-3';
 import { propagar, limparAoApagar, vincularTodasFixas } from './propagacao.js';
 import { setRender } from './bus.js';
-import { resumoMes } from './calculos.js?v=20260719-3';
+import { resumoMes, diarioDoMes, somaValor, somaPendente, somaPago } from './calculos.js?v=20260719-3';
 import { importarBase, temBase } from './seed.js';
 import { abrirImport } from './importar.js';
 import { fita } from './fita.js';
@@ -60,8 +60,16 @@ export function render() {
 
   // o cabeçalho lê do MESMO motor que o painel: não tem como discordarem
   const r = resumoMes();
-  $('hFalta').textContent = r.pendente ? M(r.pendente) : 'nada';
-  $('hPago').textContent  = M(r.pago);
+  const fixasMes = r.ts.filter(t => t.fixoId);
+  const faltaFixas = somaPendente(fixasMes);
+  const pagoFixas = somaPago(fixasMes);
+  const gastosMes = somaValor(diarioDoMes(V.ano, V.mes));
+  const desembolsado = pagoFixas + gastosMes;
+
+  $('hFalta').textContent = faltaFixas ? M(faltaFixas) : 'nada';
+  $('hPago').textContent  = M(pagoFixas);
+  $('hGastos').textContent = M(gastosMes);
+  $('hDesemb').textContent = M(desembolsado);
   $('cMes').textContent   = r.nContas || '';
   $('cFix').textContent   = S.fixos.filter(f => f.ativo).length;
   $('cDia').textContent   = S.diario.filter(d => noMes(d, V.ano, V.mes)).length || '';
