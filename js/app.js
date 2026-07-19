@@ -6,11 +6,11 @@ import { S, V, VERSAO, MESES, ABAS, A0, M0, podar, noMes, esc, viagemAtual } fro
 import { MOEDAS, M, Mc } from './moeda.js';
 import { toast, baixar } from './ui.js';
 import { sb } from './supabase.js';
-import { pedirLogin, sair, sessao } from './auth.js?v=20260719-2';
-import { carregarTudo, salvarPerfil, contasApi, fixosApi, apagarTudo, despesasApi } from './api.js?v=20260719-2';
+import { pedirLogin, sair, sessao } from './auth.js?v=20260719-3';
+import { carregarTudo, salvarPerfil, contasApi, fixosApi, apagarTudo, despesasApi } from './api.js?v=20260719-3';
 import { propagar, limparAoApagar, vincularTodasFixas } from './propagacao.js';
 import { setRender } from './bus.js';
-import { resumoMes } from './calculos.js?v=20260719-2';
+import { resumoMes } from './calculos.js?v=20260719-3';
 import { importarBase, temBase } from './seed.js';
 import { abrirImport } from './importar.js';
 import { fita } from './fita.js';
@@ -19,7 +19,7 @@ import { iniciarRelogio } from './relogio.js';
 import { doMes, telaMes }        from './telas/mes.js';
 import { telaPainel }            from './telas/painel.js';
 import { telaAno }               from './telas/ano.js';
-import { telaDiario, formDiario, formMetaDiario } from './telas/diario.js?v=20260719-2';
+import { telaDiario, formDiario, formMetaDiario } from './telas/diario.js?v=20260719-3';
 import { telaViagem, formHosp, formGasto } from './telas/viagem.js';
 import { formViagem } from './telas/viagem_form.js';
 import { formFixo } from './telas/fixo_form.js';
@@ -66,6 +66,10 @@ export function render() {
   $('cFix').textContent   = S.fixos.filter(f => f.ativo).length;
   $('cDia').textContent   = S.diario.filter(d => noMes(d, V.ano, V.mes)).length || '';
   $('ver').textContent    = VERSAO + ' · ' + S.tx.length + ' contas';
+  $('fitaTitulo').textContent = V.aba === 'diario' ? 'Calendário Financeiro' : 'Vencimentos do mês';
+  $('fitaLeg').textContent = V.aba === 'diario'
+    ? 'clique em um dia para ver total, categorias e lançamentos daquele dia'
+    : 'cheio = pago · vazio = a pagar · vermelho = vencido';
 
   $('moedas').innerHTML = Object.keys(MOEDAS).map(k =>
     `<button data-m="${k}" class="${(S.moeda || 'BRL') === k ? 'on' : ''}"
@@ -206,7 +210,7 @@ function liga() {
       catch (e) { toast(e.message || 'Não apagou'); }
     });
   document.querySelectorAll('[data-dia]').forEach(b => b.onclick = () => {
-    const d = +b.dataset.d;
+    const d = +b.dataset.dia;
     V.diaSel = V.diaSel === d ? null : d;
     render();
   });

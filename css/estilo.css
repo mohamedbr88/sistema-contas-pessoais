@@ -61,6 +61,7 @@ header{background:var(--card);border-bottom:1px solid var(--line);position:stick
 .diario-calendario .dia.no{color:var(--ink-2);opacity:.65}
 .diario-calendario .dia.selected{background:#DDE6E4;box-shadow:inset 0 0 0 1px var(--cofre)}
 .diario-calendario .badge{position:absolute;top:6px;right:6px;background:var(--cofre);color:#fff;border-radius:999px;font-size:10px;line-height:1;padding:2px 6px}
+.diario-dia-total{font-family:var(--mono);font-size:10px;color:var(--ink);line-height:1.2;min-height:24px;display:flex;align-items:center;text-align:center}
 
 /* ---- abas ---- */
 .abas{display:flex;gap:5px;border-bottom:1px solid var(--line);margin-bottom:16px;
@@ -247,3 +248,47 @@ tr.lin:hover{background:color-mix(in srgb,var(--c) 7%,#fff)}
 .grafico-diario svg{display:block;width:100%;height:auto}
 .grafico-legenda{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:10px;font-size:11px;color:var(--ink-2)}
 .grafico-legenda b{font-family:var(--mono);font-size:12px;color:var(--ink)}
+.diario-dashboard{display:grid;gap:14px}
+.diario-hero{border-color:#D9E7E3;box-shadow:0 12px 28px rgba(15,110,92,.08)}
+.diario-hero .card-hd h3{color:var(--cofre)}
+.diario-hero-body{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(320px,.8fr);gap:1px;background:var(--line)}
+.diario-hero-total,.diario-hero-side{background:var(--card)}
+.diario-hero-total{padding:22px 18px;display:grid;gap:8px;align-content:center}
+.diario-hero-total span{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2)}
+.diario-hero-total b{font-family:var(--mono);font-size:38px;letter-spacing:-.05em;line-height:1;color:var(--cofre)}
+.diario-hero-total small{font-family:var(--mono);font-size:12px;color:var(--ink-2)}
+.diario-hero-side{display:grid;grid-template-columns:repeat(3,1fr)}
+.diario-stat{padding:16px 18px;border-left:1px solid var(--line);border-bottom:1px solid var(--line);display:grid;gap:4px}
+.diario-stat span{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-2)}
+.diario-stat b{font-family:var(--mono);font-size:18px;letter-spacing:-.03em}
+.diario-stat small{font-size:12px;color:var(--ink-2)}
+.diario-stat-full{grid-column:1/-1}
+.diario-pills{display:flex;gap:6px;flex-wrap:wrap}
+.diario-grid-top{display:grid;grid-template-columns:minmax(320px,1.1fr) minmax(300px,.9fr);gap:14px;align-items:start}
+.diario-calendar-help{padding:0 14px 4px;font-size:12px;color:var(--ink-2)}
+.diario-dia-card .vazio{padding:30px 18px;text-align:left}
+.diario-dia-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--line)}
+.diario-vazio-dia p{margin-top:8px}
+.grafico-cabecalho{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;padding:14px 14px 0}
+.grafico-cabecalho p{max-width:620px;font-size:12.5px;color:var(--ink-2)}
+.grafico-legend-inline{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--ink-2)}
+.grafico-legend-inline span{display:flex;align-items:center;gap:6px}
+.grafico-legend-inline i{display:inline-block;width:22px;height:3px;border-radius:99px;background:#D84315}
+.grafico-legend-inline i.dot{width:8px;height:8px;border-radius:50%;background:#0F6E5C}
+.diario-resumo-mensal .kpi{min-height:112px}
+
+@media(max-width:980px){
+  .diario-hero-body{grid-template-columns:1fr}
+  .diario-hero-side{grid-template-columns:1fr 1fr 1fr}
+}
+@media(max-width:860px){
+  .diario-grid-top{grid-template-columns:1fr}
+}
+@media(max-width:720px){
+  .diario-hero-total b{font-size:32px}
+  .diario-hero-side{grid-template-columns:1fr}
+  .diario-stat{border-left:none}
+  .diario-dia-grid{grid-template-columns:1fr}
+  .grafico-cabecalho{padding-top:12px}
+  .diario-resumo-grid,.diario-resumo-mensal{grid-template-columns:1fr}
+}

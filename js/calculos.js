@@ -106,12 +106,26 @@ export function resumoDiarioMes(ano = V.ano, mes = V.mes) {
     if (!max) return d;
     return valorEmBRL(d.valor, d.moeda) > valorEmBRL(max.valor, max.moeda) ? d : max;
   }, null);
-  const diaMaisGastou = dias.map(data => ({
+  const diasOrdenadosPorTotal = dias.map(data => ({
     data,
     itens: porDia[data],
     total: somaValor(porDia[data])
-  })).sort((a, b) => b.total - a.total || a.data.localeCompare(b.data))[0] || null;
-  const categoriaMaior = agruparDiario(dsMes, [...new Set(dsMes.map(d => d.cat))])[0] || null;
+  })).sort((a, b) => b.total - a.total || a.data.localeCompare(b.data));
+  const diaMaisGastou = diasOrdenadosPorTotal[0] || null;
+  const diaMenosGastou = diasOrdenadosPorTotal.at(-1) || null;
+  const porCategoria = agruparDiario(dsMes, [...new Set(dsMes.map(d => d.cat))]);
+  const categoriaMaior = porCategoria[0] || null;
+  const categoriaMenor = porCategoria.at(-1) || null;
+  const porPagamento = [...new Set(dsMes.map(d => d.pg))].map(pg => ({
+    k: pg,
+    qtd: dsMes.filter(d => d.pg === pg).length,
+    total: somaValor(dsMes.filter(d => d.pg === pg))
+  })).filter(x => x.qtd).sort((a, b) => b.qtd - a.qtd || b.total - a.total || a.k.localeCompare(b.k));
+  const pagamentoMaisUsado = porPagamento[0] || null;
+  const menorGasto = dsMes.reduce((min, d) => {
+    if (!min) return d;
+    return valorEmBRL(d.valor, d.moeda) < valorEmBRL(min.valor, min.moeda) ? d : min;
+  }, null);
   const acumulado = [];
   let parcial = 0;
   for (const data of dias) {
@@ -135,8 +149,13 @@ export function resumoDiarioMes(ano = V.ano, mes = V.mes) {
     diasComGasto,
     mediaPorDiaComGasto,
     maiorGasto,
+    menorGasto,
     diaMaisGastou,
+    diaMenosGastou,
     categoriaMaior,
+    categoriaMenor,
+    pagamentoMaisUsado,
+    porPagamento,
     acumulado,
     comparacaoAnterior: {
       ano: prevAno,
