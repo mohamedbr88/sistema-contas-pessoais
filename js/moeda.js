@@ -23,11 +23,15 @@ export const emBRL = m =>
 export const conv = (v, de, para) => (v || 0) * emBRL(de) / emBRL(para);
 
 /** formata na moeda escolhida pelo usuário. de = moeda de origem do valor */
-export function M(v, de, compacto) {
-  de = de || 'BRL';
-  const m = S.moeda || 'BRL', o = MOEDAS[m];
+export function M(v, de, compactoOuOpcoes) {
+  const opcoes = (compactoOuOpcoes && typeof compactoOuOpcoes === 'object') ? compactoOuOpcoes : {};
+  const deOrigem = de || 'BRL';
+  const moedaTela = S.moeda || 'BRL';
+  const moedaAlvo = opcoes.moeda || moedaTela;
+  const o = MOEDAS[moedaAlvo] || MOEDAS[moedaTela];
   const d = o.d;
-  const n = conv(v, de, m);
+  const converter = opcoes.converter !== false;
+  const n = converter ? conv(v, deOrigem, moedaAlvo) : (v || 0);
   try {
     return n.toLocaleString('pt-BR', { style:'currency', currency:o.c,
       currencyDisplay:'narrowSymbol', minimumFractionDigits:d, maximumFractionDigits:d });
@@ -49,13 +53,7 @@ export const Mc = (v, de) => M(v, de, true);
 /** Valor na moeda em que foi pago. Nunca converte. */
 export function VE(v, mo, compacto) {
   mo = mo || 'EUR';
-  const o = MOEDAS[mo], d = o.d;
-  try {
-    return (v || 0).toLocaleString('pt-BR', { style:'currency', currency:o.c,
-      currencyDisplay:'narrowSymbol', minimumFractionDigits:d, maximumFractionDigits:d });
-  } catch (e) {
-    return o.n + ' ' + (v || 0).toLocaleString('pt-BR', { minimumFractionDigits:d, maximumFractionDigits:d });
-  }
+  return M(v, mo, { moeda: mo, converter: false });
 }
 
 /**
@@ -72,25 +70,13 @@ export function VC(v, mo, cambioProprio) {
   if (alvo === mo) return '';
   const taxa = cambioProprio || emBRL(mo);       // BRL por 1 unidade de `mo`
   const emReais = (v || 0) * taxa;
-  const o = MOEDAS[alvo];
   const n = emReais / emBRL(alvo);
-  try {
-    return n.toLocaleString('pt-BR', { style:'currency', currency:o.c,
-      currencyDisplay:'narrowSymbol', minimumFractionDigits:o.d, maximumFractionDigits:o.d });
-  } catch (e) {
-    return o.n + ' ' + n.toLocaleString('pt-BR', { minimumFractionDigits:o.d, maximumFractionDigits:o.d });
-  }
+  return M(n, alvo, { moeda: alvo, converter: false });
 }
 
 /** mostra o valor na moeda de origem, quando ela é diferente da selecionada */
 export function outra(v, de) {
   const m = S.moeda || 'BRL';
   if (m === de) return '';
-  const o = MOEDAS[de];
-  try {
-    return (v || 0).toLocaleString('pt-BR', { style:'currency', currency:o.c,
-      currencyDisplay:'narrowSymbol', maximumFractionDigits:o.d });
-  } catch (e) {
-    return o.n + ' ' + (v || 0).toLocaleString('pt-BR', { maximumFractionDigits:o.d });
-  }
+  return M(v, de, { moeda: de, converter: false });
 }

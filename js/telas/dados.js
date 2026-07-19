@@ -2,7 +2,7 @@
 //  Tela "Dados": conta do usuário, câmbios, backup, importação e base inicial.
 // ============================================================================
 import { S, V, VERSAO, MESES } from '../estado.js';
-import { MOEDAS } from '../moeda.js';
+import { M, MOEDAS } from '../moeda.js';
 
 export function telaDados(){
   const anos=[...new Set(S.tx.map(t=>t.data.slice(0,4)))].sort();
@@ -32,7 +32,7 @@ export function telaDados(){
         <input type="number" step="0.01" id="pyg" value="${S.pyg}"></div>
       <p style="font-size:12.5px;color:var(--ink-2);margin-top:10px">
         O botão <b style="color:var(--ink)">R$ · US$ · € · ₲</b> lá em cima converte o app inteiro.<br>
-        Pelas taxas de agora: <b style="color:var(--ink)">1 € = R$ ${(S.cambio||0).toFixed(2)} = US$ ${((S.cambio||0)/(S.usd||1)).toFixed(2)} = ₲ ${((S.cambio||0)*(S.pyg||0)).toLocaleString('pt-BR',{maximumFractionDigits:0})}</b>
+        Pelas taxas de agora: <b style="color:var(--ink)">1 € = ${M(S.cambio||0, 'BRL', { moeda:'BRL', converter:false })} = ${M((S.cambio||0)/(S.usd||1), 'USD', { moeda:'USD', converter:false })} = ${M((S.cambio||0)*(S.pyg||0), 'PYG', { moeda:'PYG', converter:false })}</b>
       </p>
       <p style="font-size:11.5px;color:var(--ink-2);margin-top:7px">
         O <b style="color:var(--ink)">euro</b> é o R$ 5,35 que você já usava. O <b style="color:var(--ink)">guarani</b>

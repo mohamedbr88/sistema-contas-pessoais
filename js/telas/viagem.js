@@ -32,7 +32,7 @@ export function telaViagem(){
       </div></div>
     <div class="viagem-sub">
       <span class="pastilha" style="--c:${v.status==='em_viagem'?'var(--cofre)':v.status==='planejamento'?'var(--azul)':'var(--ink-2)'}">${STATUS[v.status]||v.status}</span>
-      <span class="mono">valores em ${MOEDAS[mo].n}, como foram pagos · câmbio R$ ${cxv.toFixed(2)} / ${MOEDAS[mo].n}</span>
+      <span class="mono">valores em ${MOEDAS[mo].n}, como foram pagos · câmbio ${M(cxv, 'BRL', { moeda:'BRL', converter:false })} / ${MOEDAS[mo].n}</span>
       ${v.orcamento?`<span class="mono">orçamento ${VE(v.orcamento,mo)}</span>`:''}
       <button class="lnk" id="editarViagem">editar viagem</button>
     </div>

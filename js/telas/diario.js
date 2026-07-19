@@ -376,11 +376,15 @@ export function telaDiario(){
 const rotuloMoeda = m => `${MOEDAS[m].n}  ${m}`;
 const valorMoeda  = r => Object.keys(MOEDAS).find(m => rotuloMoeda(m) === r) || 'BRL';
 
+function arred2(n) {
+  return Math.round((Number(n) || 0) * 100) / 100;
+}
+
 export function formMetaDiario(){
   const atual = metasApi.doMes(V.ano, V.mes);
   formGen(`Meta de ${MESES[V.mes-1]} / ${V.ano}`,[
     {k:'valor',l:`Meta na moeda exibida (${S.moeda || 'BRL'})`,tipo:'number'},
-  ], { valor: atual ? Number(MetasValorLocal(atual).toFixed(2)) : 0 }, async o => {
+  ], { valor: atual ? arred2(MetasValorLocal(atual)) : 0 }, async o => {
     await metasApi.salvarMetaDiario(V.ano, V.mes, o.valor || 0, S.moeda || 'BRL');
   }, null);
 }

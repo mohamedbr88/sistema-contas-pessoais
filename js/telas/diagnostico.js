@@ -2,8 +2,9 @@ import { S } from '../estado.js';
 import { carregarTudo } from '../api.js';
 import { propagar, vincularTodasFixas, atualizarLancamentosVinculados } from '../propagacao.js';
 import { render } from '../bus.js';
+import { M } from '../moeda.js';
 
-function fmtMoney(v){ return (v==null)?'':(typeof v==='number'?v.toFixed(2):String(v)); }
+function fmtMoney(v, de){ return (v==null)?'':M(v, de || 'BRL'); }
 
 export function telaDiagnostico() {
   const diag = S.__diagnostico || {};
@@ -37,7 +38,7 @@ export function telaDiagnostico() {
       <div id="diag_list">
         <table style="width:100%"><thead><tr><th>ID</th><th>Data</th><th>Conta</th><th>Est</th><th>Moeda</th></tr></thead>
         <tbody>
-          ${lista.map(x=>`<tr><td>${x.id}</td><td>${x.data||''}</td><td>${x.conta||''}</td><td>${x.est||''}</td><td>${x.moeda||''}</td></tr>`).join('')}
+          ${lista.map(x=>`<tr><td>${x.id}</td><td>${x.data||''}</td><td>${x.conta||''}</td><td>${x.est==null?'':fmtMoney(x.est, x.moeda || 'BRL')}</td><td>${x.moeda||''}</td></tr>`).join('')}
         </tbody></table>
       </div>
     </div>`;
