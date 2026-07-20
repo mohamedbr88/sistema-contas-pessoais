@@ -255,6 +255,9 @@ function liga() {
   document.querySelectorAll('[data-vdia]').forEach(b => {
     b.onclick = () => { V.viagemDiaSel = b.dataset.vdia; render(); };
   });
+  document.querySelectorAll('[data-vg-dia]').forEach(b => {
+    b.onclick = () => { V.viagemDiaSel = b.dataset.vgDia; render(); };
+  });
 
   // trocar de viagem, criar e editar
   on('selViagem', 'onchange', e => { V.viagemId = e.target.value; render(); });
