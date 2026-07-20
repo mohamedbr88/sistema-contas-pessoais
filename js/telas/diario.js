@@ -4,7 +4,7 @@
 
 import { diarioDoMes, resumoDiarioMes, somaValor, agruparDiario, valorEmBRL } from '../calculos.js?v=20260719-3';
 import { CATD, MESES, PAGD, LOCS, S, V, cor, esc } from '../estado.js';
-import { M, MOEDAS, Mc } from '../moeda.js';
+import { conv, M, MOEDAS, Mc } from '../moeda.js';
 import { despesasApi, metasApi } from '../api.js?v=20260719-4';
 import { formGen } from '../ui.js';
 
@@ -99,6 +99,26 @@ function resumoItem(titulo, valor, detalhe) {
 function listaPills(itens, vazio) {
   if (!itens.length) return `<span class="pill pill-cat">${vazio}</span>`;
   return itens.map(item => `<span class="pill pill-cat">${esc(item)}</span>`).join('');
+}
+
+function valorCalendarioCompacto(totalBRL) {
+  const moedaTela = S.moeda || 'BRL';
+  const info = MOEDAS[moedaTela] || MOEDAS.BRL;
+  const convertido = conv(totalBRL || 0, 'BRL', moedaTela);
+  if (Math.abs(convertido) < 1000) return M(totalBRL, 'BRL');
+  try {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: info.c,
+      currencyDisplay: 'narrowSymbol',
+      notation: 'compact',
+      compactDisplay: 'short',
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1
+    }).format(convertido);
+  } catch (e) {
+    return M(totalBRL, 'BRL');
+  }
 }
 
 function divisorMediaDiaria(ano, mes, nd, itensDia) {
@@ -276,6 +296,7 @@ export function telaDiario(){
   const metaStatus = !metaMes ? 'Defina uma meta mensal' : saldoMeta >= 0 ? `${Mc(saldoMeta)} restantes` : `${Mc(Math.abs(saldoMeta))} acima da meta`;
   const menorDiaRotulo = diaMenosGastou ? formatDateIso(diaMenosGastou.data) : 'Sem dados';
   const dsLista = diaSel ? dsDiaOrdenado : dsMes.slice().sort(ordenarDiarioRecente);
+  const diaPicoCalendario = diaMaisGastou ? +diaMaisGastou.data.slice(8, 10) : null;
   const categoriasDoDia = [...new Set(dsDia.map(d => d.cat))];
   const pagamentosDoDia = [...new Set(dsDia.map(d => d.pg))];
   const maiorDia = dsDia.reduce((max, d) => {
@@ -359,16 +380,20 @@ export function telaDiario(){
     <div class="diario-grid-top">
       <div class="card"><div class="card-hd"><h3>Calendário do mês</h3></div>
         <div class="diario-calendar-help">Clique em qualquer dia para focar o total, as categorias e a lista daquele dia.</div>
-        <div class="diario-calendario">${Array.from({length: nd}, (_,i) => {
+        <div class="diario-calendario-wrap"><div class="diario-calendario">${Array.from({length: nd}, (_,i) => {
           const d = i + 1;
           const itens = diasPorDia[`${V.ano}-${String(V.mes).padStart(2,'0')}-${String(d).padStart(2,'0')}`] || [];
           const totalDia = somaValor(itens);
           const sel = diaSel === d ? ' selected' : '';
+          const pico = diaPicoCalendario === d ? ' is-max' : '';
           const badge = itens.length ? `<span class="badge">${itens.length}</span>` : '';
-          return `<button class="dia${sel}${itens.length?' has':' no'}" data-dia="${d}" aria-pressed="${diaSel===d}" title="${itens.length ? `${itens.length} lançamento(s) · ${Mc(totalDia)}` : 'Nenhum lançamento neste dia.'}">
+          const valorCompacto = itens.length ? valorCalendarioCompacto(totalDia) : '—';
+          const valorCompleto = itens.length ? M(totalDia, 'BRL') : 'Nenhum lançamento neste dia.';
+          return `<button class="dia${sel}${pico}${itens.length?' has':' no'}" data-dia="${d}" aria-pressed="${diaSel===d}" title="${itens.length ? `${itens.length} lançamento(s) · ${valorCompleto}` : valorCompleto}">
             <span class="n">${d}</span>
-            <span class="diario-dia-total">${itens.length ? Mc(totalDia) : '—'}</span>${badge}</button>`;
-        }).join('')}</div></div>
+            ${badge}
+            <span class="diario-dia-total">${valorCompacto}</span></button>`;
+        }).join('')}</div></div></div>
 
       <div class="card diario-dia-card"><div class="card-hd"><h3>${diaSel ? `Resumo de ${formatDate(V.ano, V.mes, diaSel)}` : 'Resumo do dia selecionado'}</h3>
         <div class="dir">${diaSel ? `<button class="btn btn-cofre" id="addDday">+ Novo gasto neste dia</button>` : `<button class="btn" id="addD">+ Novo gasto</button>`}</div></div>
