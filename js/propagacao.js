@@ -26,7 +26,7 @@
 //  trás, aparecer de agosto em diante. As pagas de julho ficam onde estão —
 //  regra 1.
 // ============================================================================
-import { S } from './estado.js?v=20260720-6';
+import { S } from './estado.js?v=20260720-7';
 import { contasApi, carregarTudo } from './api.js';
 
 /** O mês 'AAAA-MM' de uma data 'AAAA-MM-DD'. */

@@ -5,10 +5,10 @@
 //  componente novo. A viagem criada aqui abre no MESMO painel da Espanha,
 //  vazia, com os mesmos botões.
 // ============================================================================
-import { S, V, STATUS, esc } from '../estado.js?v=20260720-6';
-import { MOEDAS } from '../moeda.js?v=20260720-6';
-import { formGen, toast } from '../ui.js?v=20260720-6';
-import { viagemApi, statusPelasDatas } from '../api.js?v=20260720-6';
+import { S, V, STATUS, esc } from '../estado.js?v=20260720-7';
+import { MOEDAS } from '../moeda.js?v=20260720-7';
+import { formGen, toast } from '../ui.js?v=20260720-7';
+import { viagemApi, statusPelasDatas } from '../api.js?v=20260720-7';
 
 // o formGen mostra o texto da opção; estes mapas traduzem para o que o banco guarda
 const rotuloStatus = v => STATUS[v] || STATUS.planejamento;

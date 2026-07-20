@@ -6,9 +6,9 @@ import { valeNoMes, vencimentoNoMes } from '../propagacao.js';
 import { contasApi } from '../api.js';
 import { doMes } from './mes.js';
 import { render } from '../bus.js';
-import { MESES, S, V, cor, dia, esc, novoId } from '../estado.js?v=20260720-6';
+import { MESES, S, V, cor, dia, esc, novoId } from '../estado.js?v=20260720-7';
 import { Mc, VE } from '../moeda.js';
-import { somaEstimado } from '../calculos.js?v=20260720-6';
+import { somaEstimado } from '../calculos.js?v=20260720-7';
 import { toast } from '../ui.js';
 
 export function lancarFixos(ano,mes){

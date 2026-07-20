@@ -2,10 +2,10 @@
 //  Tela "Viagem": calendário diário, resumo lateral e conversão única.
 // ============================================================================
 
-import { CATD, PAGD, S, V, STATUS, MESES, cor, esc, hojeISO, viagemAtual } from '../estado.js?v=20260720-6';
-import { M, MOEDAS, conv } from '../moeda.js?v=20260720-6';
-import { viagemApi } from '../api.js?v=20260720-6';
-import { formGen } from '../ui.js?v=20260720-6';
+import { CATD, PAGD, S, V, STATUS, MESES, cor, esc, hojeISO, viagemAtual } from '../estado.js?v=20260720-7';
+import { M, MOEDAS, conv } from '../moeda.js?v=20260720-7';
+import { viagemApi } from '../api.js?v=20260720-7';
+import { formGen } from '../ui.js?v=20260720-7';
 
 const MOEDAS_ORDEM = ['BRL', 'USD', 'EUR', 'PYG'];
 const MOEDA_ICONE = { BRL: 'R$', USD: 'US$', EUR: '€', PYG: '₲' };

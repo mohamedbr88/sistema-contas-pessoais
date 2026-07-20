@@ -10,7 +10,7 @@
 // ============================================================================
 
 export const VERSAO = 'v13-supabase';
-export const CACHE_VERSAO = '20260720-6';
+export const CACHE_VERSAO = '20260720-7';
 export const APP_STATE_KEY = `contas:state:${CACHE_VERSAO}`;
 
 export const INICIO = '2026-05-01';   // regra fixa: nada antes disso existe

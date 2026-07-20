@@ -2,10 +2,10 @@
 //  Tela "Dia a dia": gasto solto do mês (mercado, restaurante, uber).
 // ============================================================================
 
-import { diarioDoMes, resumoDiarioMes, somaValor, agruparDiario, valorEmBRL } from '../calculos.js?v=20260720-6';
-import { CATD, MESES, PAGD, LOCS, S, V, cor, esc } from '../estado.js?v=20260720-6';
-import { conv, M, MOEDAS, Mc } from '../moeda.js?v=20260720-6';
-import { despesasApi, metasApi } from '../api.js?v=20260720-6';
+import { diarioDoMes, resumoDiarioMes, somaValor, agruparDiario, valorEmBRL } from '../calculos.js?v=20260720-7';
+import { CATD, MESES, PAGD, LOCS, S, V, cor, esc } from '../estado.js?v=20260720-7';
+import { conv, M, MOEDAS, Mc } from '../moeda.js?v=20260720-7';
+import { despesasApi, metasApi } from '../api.js?v=20260720-7';
 import { formGen } from '../ui.js';
 
 function formatDate(year, month, day) {

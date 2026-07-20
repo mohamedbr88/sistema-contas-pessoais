@@ -2,32 +2,32 @@
 //  app.js — junta tudo: desenha a tela, liga os eventos, inicia a sessão.
 //  É o único arquivo carregado pelo index.html.
 // ============================================================================
-import { S, V, VERSAO, MESES, ABAS, A0, M0, podar, noMes, esc, viagemAtual, carregarEstadoTela, salvarEstadoTela, CACHE_VERSAO } from './estado.js?v=20260720-6';
-import { MOEDAS, M, Mc } from './moeda.js?v=20260720-6';
-import { toast, baixar } from './ui.js?v=20260720-6';
+import { S, V, VERSAO, MESES, ABAS, A0, M0, podar, noMes, esc, viagemAtual, carregarEstadoTela, salvarEstadoTela, CACHE_VERSAO } from './estado.js?v=20260720-7';
+import { MOEDAS, M, Mc } from './moeda.js?v=20260720-7';
+import { toast, baixar } from './ui.js?v=20260720-7';
 import { sb } from './supabase.js';
-import { pedirLogin, sair, sessao } from './auth.js?v=20260720-6';
-import { carregarTudo, salvarPerfil, contasApi, fixosApi, apagarTudo, despesasApi } from './api.js?v=20260720-6';
-import { propagar, limparAoApagar, vincularTodasFixas } from './propagacao.js?v=20260720-6';
+import { pedirLogin, sair, sessao } from './auth.js?v=20260720-7';
+import { carregarTudo, salvarPerfil, contasApi, fixosApi, apagarTudo, despesasApi } from './api.js?v=20260720-7';
+import { propagar, limparAoApagar, vincularTodasFixas } from './propagacao.js?v=20260720-7';
 import { setRender } from './bus.js';
-import { resumoMes, diarioDoMes, somaValor, somaPendente, somaPago } from './calculos.js?v=20260720-6';
-import { importarBase, temBase } from './seed.js?v=20260720-6';
-import { abrirImport } from './importar.js?v=20260720-6';
-import { fita } from './fita.js?v=20260720-6';
-import { iniciarRelogio } from './relogio.js?v=20260720-6';
+import { resumoMes, diarioDoMes, somaValor, somaPendente, somaPago } from './calculos.js?v=20260720-7';
+import { importarBase, temBase } from './seed.js?v=20260720-7';
+import { abrirImport } from './importar.js?v=20260720-7';
+import { fita } from './fita.js?v=20260720-7';
+import { iniciarRelogio } from './relogio.js?v=20260720-7';
 
-import { doMes, telaMes }        from './telas/mes.js?v=20260720-6';
-import { telaPainel }            from './telas/painel.js?v=20260720-6';
-import { telaAno }               from './telas/ano.js?v=20260720-6';
-import { telaDiario, formDiario, formMetaDiario } from './telas/diario.js?v=20260720-6';
-import { telaViagem, formHosp, formGasto } from './telas/viagem.js?v=20260720-6';
-import { formViagem } from './telas/viagem_form.js?v=20260720-6';
-import { formFixo } from './telas/fixo_form.js?v=20260720-6';
-import { telaInsights, exportarInsightsCsv, exportarInsightsXls, imprimirInsights } from './telas/insights.js?v=20260720-6';
-import { telaFixos, gerarMes, gerarAno }   from './telas/fixos.js?v=20260720-6';
-import { telaDados }             from './telas/dados.js?v=20260720-6';
-import { telaDiagnostico, executarSincronizacao } from './telas/diagnostico.js?v=20260720-6';
-import { form }                  from './telas/form_conta.js?v=20260720-6';
+import { doMes, telaMes }        from './telas/mes.js?v=20260720-7';
+import { telaPainel }            from './telas/painel.js?v=20260720-7';
+import { telaAno }               from './telas/ano.js?v=20260720-7';
+import { telaDiario, formDiario, formMetaDiario } from './telas/diario.js?v=20260720-7';
+import { telaViagem, formHosp, formGasto } from './telas/viagem.js?v=20260720-7';
+import { formViagem } from './telas/viagem_form.js?v=20260720-7';
+import { formFixo } from './telas/fixo_form.js?v=20260720-7';
+import { telaInsights, exportarInsightsCsv, exportarInsightsXls, imprimirInsights } from './telas/insights.js?v=20260720-7';
+import { telaFixos, gerarMes, gerarAno }   from './telas/fixos.js?v=20260720-7';
+import { telaDados }             from './telas/dados.js?v=20260720-7';
+import { telaDiagnostico, executarSincronizacao } from './telas/diagnostico.js?v=20260720-7';
+import { form }                  from './telas/form_conta.js?v=20260720-7';
 
 const $ = id => document.getElementById(id);
 const on = (id, ev, fn) => { const e = $(id); if (e) e[ev] = fn; };

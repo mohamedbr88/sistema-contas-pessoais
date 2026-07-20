@@ -2,10 +2,10 @@
 //  Tela "Painel": indicadores do mês, vencidas, barras por categoria e local.
 // ============================================================================
 
-import { resumoMes, agrupar, somaEstimado } from '../calculos.js?v=20260720-6';
+import { resumoMes, agrupar, somaEstimado } from '../calculos.js?v=20260720-7';
 import { doMes } from './mes.js';
-import { CATS, LOCS, V, cor, dia, esc, vencido } from '../estado.js?v=20260720-6';
-import { M, Mc } from '../moeda.js?v=20260720-6';
+import { CATS, LOCS, V, cor, dia, esc, vencido } from '../estado.js?v=20260720-7';
+import { M, Mc } from '../moeda.js?v=20260720-7';
 
 export function telaPainel(){
   const r=resumoMes();

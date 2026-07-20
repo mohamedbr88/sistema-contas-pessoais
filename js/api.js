@@ -11,7 +11,7 @@
 //  forjar outro id, o banco recusa (testado).
 // ============================================================================
 import { sb, usuarioId, erroLegivel } from './supabase.js';
-import { S, V, INICIO } from './estado.js?v=20260720-6';
+import { S, V, INICIO } from './estado.js?v=20260720-7';
 
 /** Erro do PostgREST → erro legível, e para tudo. */
 function ops(erro) {

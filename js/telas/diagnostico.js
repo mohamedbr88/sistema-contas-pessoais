@@ -1,4 +1,4 @@
-import { S } from '../estado.js?v=20260720-6';
+import { S } from '../estado.js?v=20260720-7';
 import { carregarTudo } from '../api.js';
 import { propagar, vincularTodasFixas, atualizarLancamentosVinculados } from '../propagacao.js';
 import { render } from '../bus.js';

@@ -30,31 +30,26 @@ export function pedirLogin() {
   window.scrollTo(0, 0);
   document.getElementById('app').hidden = true;
 
-  let modo = 'entrar';   // entrar | criar | recuperar
+  let modo = 'entrar';   // entrar | recuperar
   const desenha = () => {
     el.innerHTML = `
       <div class="card login-card">
         <div class="login-topo">
           <h1>Contas</h1>
-          <p>${modo === 'entrar' ? 'Entre para ver suas contas.'
-              : modo === 'criar' ? 'Crie sua conta. Leva 10 segundos.'
-              : 'Mandamos um link para você trocar a senha.'}</p>
+          <p>${modo === 'entrar' ? 'Entre na sua conta' : 'Mandamos um link para você trocar a senha.'}</p>
         </div>
         <div class="campos">
-          ${modo === 'criar' ? `<div class="campo"><label>Seu nome</label><input id="l_nome" autocomplete="name"></div>` : ''}
           <div class="campo"><label>E-mail</label>
             <input type="email" id="l_email" autocomplete="email" inputmode="email" placeholder="voce@email.com"></div>
           ${modo !== 'recuperar' ? `<div class="campo"><label>Senha</label>
-            <input type="password" id="l_senha" autocomplete="${modo==='criar'?'new-password':'current-password'}"
-                   placeholder="${modo==='criar'?'mínimo 6 caracteres':''}"></div>` : ''}
+            <input type="password" id="l_senha" autocomplete="current-password"></div>` : ''}
           <div id="l_erro" class="login-erro" hidden></div>
           <button class="btn" id="l_ok" style="width:100%;padding:10px">
-            ${modo === 'entrar' ? 'Entrar' : modo === 'criar' ? 'Criar conta' : 'Enviar link'}
+            ${modo === 'entrar' ? 'Entrar' : 'Enviar link'}
           </button>
           <div class="login-links">
             ${modo === 'entrar'
-              ? `<button class="lnk" data-m="criar">Não tenho conta</button>
-                 <button class="lnk" data-m="recuperar">Esqueci a senha</button>`
+              ? `<button class="lnk" data-m="recuperar">Esqueci a senha</button>`
               : `<button class="lnk" data-m="entrar">← Voltar para entrar</button>`}
           </div>
         </div>
@@ -72,28 +67,18 @@ export function pedirLogin() {
     ok.onclick = async () => {
       const email = document.getElementById('l_email').value.trim();
       const senha = document.getElementById('l_senha')?.value ?? '';
-      if (!email) return erro('Falta o e-mail.');
+      if (modo === 'entrar' && (!email || !senha)) return erro('Preencha o e-mail e a senha.');
+      if (modo === 'recuperar' && !email) return erro('Preencha o e-mail.');
       ok.disabled = true; ok.textContent = 'Um instante…';
       try {
         if (modo === 'entrar') {
           const { error } = await sb.auth.signInWithPassword({ email, password: senha });
-          if (error) throw error;
-          reiniciarNoTopo();
-
-        } else if (modo === 'criar') {
-          const nome = document.getElementById('l_nome').value.trim();
-          const { data, error } = await sb.auth.signUp({
-            email, password: senha, options: { data: { nome } }
-          });
-          if (error) throw error;
-          if (!data.session) {
-            el.innerHTML = `<div class="card login-card"><div class="login-topo">
-              <h1>Confira seu e-mail</h1>
-              <p>Mandamos um link de confirmação para <b>${email}</b>. Clique nele e volte aqui.</p>
-              <p style="font-size:12.5px;margin-top:10px">Não chegou? Olhe o spam. Se você é o único usuário,
-              dá para desligar a confirmação em Supabase → Authentication → Providers → Email.</p>
-              </div></div>`;
-            return;
+          if (error) {
+            const msg = String(error.message || '');
+            if (/invalid login credentials|invalid credentials|invalid email or password/i.test(msg)) {
+              throw new Error('E-mail ou senha incorretos.');
+            }
+            throw error;
           }
           reiniciarNoTopo();
 
@@ -103,10 +88,17 @@ export function pedirLogin() {
           erro('Link enviado. Olhe seu e-mail.');
         }
       } catch (e) {
-        erro(erroLegivel(e));
+        const msg = String(e?.message || '');
+        if (msg === 'Preencha o e-mail e a senha.' || msg === 'E-mail ou senha incorretos.') {
+          erro(msg);
+        } else if (modo === 'entrar') {
+          erro('Não foi possível entrar. Tente novamente.');
+        } else {
+          erro(erroLegivel(e));
+        }
       } finally {
         ok.disabled = false;
-        ok.textContent = modo === 'entrar' ? 'Entrar' : modo === 'criar' ? 'Criar conta' : 'Enviar link';
+        ok.textContent = modo === 'entrar' ? 'Entrar' : 'Enviar link';
       }
     };
   }

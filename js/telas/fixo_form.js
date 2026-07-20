@@ -7,7 +7,7 @@
 //
 //  Ao salvar, propaga: veja js/propagacao.js para as regras.
 // ============================================================================
-import { S, CATS, LOCS, PAGS } from '../estado.js?v=20260720-6';
+import { S, CATS, LOCS, PAGS } from '../estado.js?v=20260720-7';
 import { MOEDAS } from '../moeda.js';
 import { formGen, toast } from '../ui.js';
 import { fixosApi } from '../api.js';

@@ -3,9 +3,9 @@
 // ============================================================================
 
 import { render } from './bus.js';
-import { S, V, dia, hojeISO, val, vencido } from './estado.js?v=20260720-6';
+import { S, V, dia, hojeISO, val, vencido } from './estado.js?v=20260720-7';
 import { Mc } from './moeda.js';
-import { valorEmBRL } from './calculos.js?v=20260720-6';
+import { valorEmBRL } from './calculos.js?v=20260720-7';
 
 export function fita(){
   const el=document.getElementById('dias');

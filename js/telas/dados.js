@@ -1,7 +1,7 @@
 // ============================================================================
 //  Tela "Dados": conta do usuário, câmbios, backup, importação e base inicial.
 // ============================================================================
-import { S, V, VERSAO, MESES } from '../estado.js?v=20260720-6';
+import { S, V, VERSAO, MESES } from '../estado.js?v=20260720-7';
 import { M, MOEDAS } from '../moeda.js';
 
 export function telaDados(){
