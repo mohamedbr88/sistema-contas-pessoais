@@ -66,7 +66,7 @@ header{background:var(--card);border-bottom:1px solid var(--line);position:stick
 .diario-calendario .dia.is-max{border-color:#B7C9E8;box-shadow:inset 0 0 0 1px #D5E1F3}
 .diario-calendario .dia .n{align-self:start;justify-self:start;font-size:11px;line-height:1.1;color:var(--ink-2);font-weight:600}
 .diario-calendario .badge{position:absolute;top:7px;right:7px;min-width:20px;text-align:center;background:var(--cofre);color:#fff;border-radius:999px;font-size:10px;line-height:1;padding:3px 6px;font-family:var(--mono);box-shadow:0 1px 2px rgba(22,38,44,.08)}
-.diario-dia-total{align-self:end;font-family:var(--mono);font-size:10px;color:var(--ink);line-height:1.15;min-height:18px;width:100%;display:block;text-align:center;padding:0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.diario-dia-total{align-self:end;font-family:var(--mono);font-size:8.5px;color:var(--ink);line-height:1.15;min-height:18px;width:100%;display:block;text-align:center;padding:0 2px;white-space:nowrap;overflow:hidden;text-overflow:clip}
 .diario-dia-total.is-hidden{display:none}
 .diario-calendario .dia.no .diario-dia-total{color:var(--ink-2)}
 
@@ -356,10 +356,10 @@ tr.lin:hover{background:color-mix(in srgb,var(--c) 7%,#fff)}
   .diario-resumo-grid,.diario-resumo-mensal{grid-template-columns:1fr}
   .mes-resumo-kpis{grid-template-columns:1fr}
   .diario-calendario-wrap{overflow-x:auto;padding:10px 10px 12px}
-  .diario-calendario{grid-template-columns:repeat(7,minmax(92px,1fr));gap:6px;min-width:646px}
+  .diario-calendario{grid-template-columns:repeat(7,minmax(98px,1fr));gap:6px;min-width:686px}
   .diario-calendario .dia{min-height:88px;padding:8px 6px 8px}
   .diario-calendario .badge{top:5px;right:5px;padding:2px 5px}
-  .diario-dia-total{font-size:9.5px;min-height:16px}
+  .diario-dia-total{font-size:8px;min-height:16px}
   .grafico-legenda{font-size:10px;gap:10px}
   .grafico-cabecalho p{font-size:12px}
   .grafico-diario svg.diario-evolucao{max-height:196px}
@@ -375,7 +375,7 @@ tr.lin:hover{background:color-mix(in srgb,var(--c) 7%,#fff)}
   .diario-calendario{gap:6px}
   .diario-calendario .dia{min-height:92px;padding:9px 7px}
   .diario-calendario .badge{padding:2px 5px;font-size:9.5px}
-  .diario-dia-total{font-size:9.5px}
+  .diario-dia-total{font-size:8.5px}
 }
 
 @media(max-width:460px){

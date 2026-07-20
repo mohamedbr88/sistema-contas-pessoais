@@ -105,29 +105,13 @@ function valorCalendarioCompacto(totalBRL) {
   const moedaTela = S.moeda || 'BRL';
   const info = MOEDAS[moedaTela] || MOEDAS.BRL;
   const convertido = conv(totalBRL || 0, 'BRL', moedaTela);
-  if (Math.abs(convertido) < 1000) {
-    const arredondado = Math.round(convertido);
-    try {
-      return new Intl.NumberFormat('pt-BR', {
-        style: 'currency',
-        currency: info.c,
-        currencyDisplay: 'narrowSymbol',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-      }).format(arredondado);
-    } catch (e) {
-      return M(totalBRL, 'BRL').replace(/([.,]\d{2})$/, '');
-    }
-  }
   try {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: info.c,
       currencyDisplay: 'narrowSymbol',
-      notation: 'compact',
-      compactDisplay: 'short',
-      minimumFractionDigits: 1,
-      maximumFractionDigits: 1
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     }).format(convertido);
   } catch (e) {
     return M(totalBRL, 'BRL');
