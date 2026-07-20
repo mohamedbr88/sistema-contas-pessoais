@@ -26,7 +26,7 @@ export function telaPainel(){
       <div class="dir mono" style="color:var(--carimbo);font-weight:600">${M(somaEstimado(venc))}</div></div>
       <table><tbody>${venc.sort((a,b)=>a.data.localeCompare(b.data)).map(t=>`<tr>
         <td class="mono" style="width:52px;font-size:12px;color:var(--carimbo)">${dia(t)}/${String(V.mes).padStart(2,'0')}</td>
-        <td>${esc(t.conta)}</td><td class="num">${M(t.est)}</td>
+        <td>${esc(t.conta)}</td><td class="num">${M(t.est, t.moeda || 'BRL')}</td>
         <td style="width:96px;text-align:right"><button class="btn-2" data-toggle="${t.id}">marcar pago</button></td></tr>`).join('')}</tbody></table></div>`:''}
     <div class="grid2">
       <div class="card"><div class="card-hd"><h3>Por categoria</h3><div class="dir" style="font-size:11px;color:var(--ink-2)">barra cheia = pago · hachura = a pagar</div></div>

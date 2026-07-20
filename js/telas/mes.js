@@ -28,8 +28,8 @@ export function telaMes(){
     <td><b style="font-weight:500">${esc(t.conta)}</b>${t.obs?`<div style="font-size:11px;color:var(--ink-2);margin-top:1px">${esc(t.obs)}</div>`:''}</td>
     <td><span class="pill" style="background:${cor(t.cat)}1A;color:${cor(t.cat)}">${esc(t.cat)}</span></td>
     <td style="font-size:12px;color:var(--ink-2)">${esc(t.loc)}${t.pg?' · '+esc(t.pg):''}</td>
-    <td class="num" style="color:var(--ink-2);font-size:12px">${t.est?M(t.est):'—'}</td>
-    <td class="num" style="font-weight:600">${t.pago?M(t.pago):'—'}</td>
+    <td class="num" style="color:var(--ink-2);font-size:12px">${t.est?M(t.est, t.moeda || 'BRL'):'—'}</td>
+    <td class="num" style="font-weight:600">${t.pago?M(t.pago, t.moeda || 'BRL'):'—'}</td>
     <td><button class="st ${vencido(t)?'st-venc':(t.st==='Pago'?'st-pago':'st-pend')}" data-toggle="${t.id}"
         title="Marcar como ${t.st==='Pago'?'a pagar':'pago'}">${vencido(t)?'vencido':(t.st==='Pago'?'pago':'a pagar')}</button></td>
     <td style="text-align:right;white-space:nowrap">

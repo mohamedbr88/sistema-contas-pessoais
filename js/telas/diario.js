@@ -129,12 +129,12 @@ function divisorMediaDiaria(ano, mes, nd, itensDia) {
 
 function estruturaFluxoMes(itensDia, mediaDiaria, limiteDiario) {
   const mobile = typeof window !== 'undefined' && window.innerWidth <= 720;
-  const w = 700, h = mobile ? 210 : 180, padX = 42, padY = mobile ? 26 : 22;
+  const w = 760, h = mobile ? 240 : 210, padX = mobile ? 58 : 64, padY = mobile ? 28 : 24;
   const usableW = w - padX * 2;
   const usableH = h - padY * 2;
   const n = Math.max(1, itensDia.length);
   const step = usableW / n;
-  const barW = Math.max(2.2, step * (mobile ? 0.72 : 0.68));
+  const barW = Math.max(3.2, step * (mobile ? 0.62 : 0.58));
   const maxValor = Math.max(
     ...itensDia.map(item => item.total),
     mediaDiaria || 0,
@@ -143,17 +143,18 @@ function estruturaFluxoMes(itensDia, mediaDiaria, limiteDiario) {
   );
   const maxEscala = maxValor || 1;
   const yPorValor = valor => padY + usableH - ((valor / maxEscala) * usableH);
-  const ticksY = Array.from({ length: 4 }, (_, i) => {
-    const ratio = i / 3;
+  const ticksY = Array.from({ length: 5 }, (_, i) => {
+    const ratio = i / 4;
     const valor = maxEscala * (1 - ratio);
     const y = padY + usableH * ratio;
     return { valor, y };
   });
-  const ticksX = itensDia.filter((_, idx) => idx === 0 || idx === itensDia.length - 1 || idx % Math.max(1, Math.ceil(itensDia.length / 6)) === 0)
-    .map((item, idx) => ({
-      dia: item.dia,
-      x: padX + (idx * step) + (step / 2)
-    }));
+  const passoTick = Math.max(1, Math.ceil(itensDia.length / (mobile ? 8 : 12)));
+  const ticksX = itensDia.map((item, idx) => ({
+    dia: item.dia,
+    x: padX + (idx * step) + (step / 2),
+    mostrar: idx === 0 || idx === itensDia.length - 1 || idx % passoTick === 0
+  }));
   const bars = itensDia.map((item, idx) => {
     const x = padX + (idx * step) + ((step - barW) / 2);
     const hBar = item.total ? Math.max((item.total / maxEscala) * usableH, 2.5) : 0;
@@ -386,11 +387,10 @@ export function telaDiario(){
           const badge = itens.length ? `<span class="badge">${itens.length}</span>` : '';
           const valorCompacto = itens.length ? valorCalendarioCompacto(totalDia) : '—';
           const valorCompleto = itens.length ? M(totalDia, 'BRL') : 'Nenhum lançamento neste dia.';
-          const esconderValor = !itens.length || (window.innerWidth <= 360 && valorCompacto.length > 9);
           return `<button class="dia${sel}${pico}${itens.length?' has':' no'}" data-dia="${d}" aria-pressed="${diaSel===d}" title="${itens.length ? `${itens.length} lançamento(s) · ${valorCompleto}` : valorCompleto}">
             <span class="n">${d}</span>
             ${badge}
-            <span class="diario-dia-total${esconderValor ? ' is-hidden' : ''}">${valorCompacto}</span></button>`;
+            <span class="diario-dia-total">${valorCompacto}</span></button>`;
         }).join('')}</div></div></div>
 
       <div class="card diario-dia-card"><div class="card-hd"><h3>${diaSel ? `Resumo de ${formatDate(V.ano, V.mes, diaSel)}` : 'Resumo do dia selecionado'}</h3>
@@ -414,7 +414,7 @@ export function telaDiario(){
       <div class="grafico-diario">
         <svg class="diario-evolucao" viewBox="0 0 ${fluxo.w} ${fluxo.h}" role="img" aria-label="Fluxo diário de gastos do mês">
           <rect x="0" y="0" width="${fluxo.w}" height="${fluxo.h}" rx="10" fill="#F7FAF9"></rect>
-          ${fluxo.ticksY.map(t => `<g><line x1="${fluxo.padX}" y1="${t.y.toFixed(1)}" x2="${fluxo.w - fluxo.padX}" y2="${t.y.toFixed(1)}" stroke="#D7E2E0" stroke-dasharray="4 4"></line><text x="10" y="${(t.y + 4).toFixed(1)}" font-size="11" fill="#5C7079">${esc(Mc(t.valor))}</text></g>`).join('')}
+          ${fluxo.ticksY.map(t => `<g><line x1="${fluxo.padX}" y1="${t.y.toFixed(1)}" x2="${fluxo.w - fluxo.padX}" y2="${t.y.toFixed(1)}" stroke="#D7E2E0" stroke-dasharray="4 4"></line><text x="${(fluxo.padX - 10).toFixed(1)}" y="${(t.y + 4).toFixed(1)}" text-anchor="end" font-size="11" fill="#5C7079">${esc(Mc(t.valor))}</text></g>`).join('')}
           ${fluxo.bars.map(item => {
             const destaque = maiorDiaFluxo && maiorDiaFluxo.dia === item.dia;
             const valorLabel = Mc(item.total);
@@ -431,7 +431,7 @@ export function telaDiario(){
           }).join('')}
           <line x1="${fluxo.padX}" y1="${fluxo.yMedia.toFixed(1)}" x2="${fluxo.w - fluxo.padX}" y2="${fluxo.yMedia.toFixed(1)}" stroke="#0D5C56" stroke-width="2.6" stroke-dasharray="7 4"></line>
           ${fluxo.yLimite == null ? '' : `<line x1="${fluxo.padX}" y1="${fluxo.yLimite.toFixed(1)}" x2="${fluxo.w - fluxo.padX}" y2="${fluxo.yLimite.toFixed(1)}" stroke="#2F4F9E" stroke-width="2.4" stroke-dasharray="3 6"></line>`}
-          ${fluxo.ticksX.map(t => `<text x="${t.x.toFixed(1)}" y="${fluxo.h - 6}" text-anchor="middle" font-size="11" fill="#5C7079">${t.dia}</text>`).join('')}
+          ${fluxo.ticksX.map(t => t.mostrar ? `<text x="${t.x.toFixed(1)}" y="${fluxo.h - 6}" text-anchor="middle" font-size="11" fill="#5C7079">${t.dia}</text>` : '').join('')}
           <text x="14" y="16" font-size="11.5" font-weight="600" fill="#3E525B">Valor por dia</text>
           <text x="${fluxo.w / 2}" y="${fluxo.h - 20}" text-anchor="middle" font-size="11" fill="#5C7079">Dias do mês</text>
         </svg>
@@ -526,7 +526,7 @@ export function telaDiario(){
             <td><span class="pill" style="background:${cor(d.cat)}1A;color:${cor(d.cat)}">${esc(d.cat)}</span></td>
             <td style="font-size:12px;color:var(--ink-2)">${diaSel ? esc(d.loc) : esc(d.pg)}</td>
             <td style="font-size:12px;color:var(--ink-2)">${esc(d.pg)}</td>
-            <td class="num" style="font-weight:600">${M(d.valor)}</td>
+            <td class="num" style="font-weight:600">${M(d.valor, d.moeda || 'BRL')}</td>
             <td>${diaSel ? esc(d.obs||'') : ''}</td>
             <td style="text-align:right"><button class="acao" data-ed-diario="${d.id}">editar</button>
             <button class="acao del" data-del-diario="${d.id}" style="margin-left:8px">apagar</button></td></tr>`).join('')}</tbody>

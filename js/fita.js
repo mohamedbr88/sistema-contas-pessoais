@@ -4,7 +4,8 @@
 
 import { render } from './bus.js';
 import { S, V, dia, hojeISO, val, vencido } from './estado.js?v=20260720-4';
-import { M } from './moeda.js';
+import { Mc } from './moeda.js';
+import { valorEmBRL } from './calculos.js?v=20260720-4';
 
 export function fita(){
   const el=document.getElementById('dias');
@@ -13,9 +14,10 @@ export function fita(){
   for(let d=1;d<=nd;d++){
     const iso=`${V.ano}-${String(V.mes).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const ts=S.tx.filter(t=>t.data===iso);
+    const totalDiaBRL = ts.reduce((s,t)=>s+valorEmBRL(val(t), t.moeda || 'BRL'),0);
     const ticks=ts.slice(0,7).map(t=>`<i class="tick ${vencido(t)?'venc':(t.st==='Pago'?'':'pend')}"></i>`).join('');
     h+=`<button class="dia ${iso===hojeISO?'hoje':''}" data-d="${d}" aria-pressed="${V.diaSel===d}"
-        title="${ts.length?ts.length+' conta(s) · '+M(ts.reduce((s,t)=>s+val(t),0)):'sem contas'}">
+      title="${ts.length?ts.length+' conta(s) · '+Mc(totalDiaBRL):'sem contas'}">
         <div class="barras">${ticks}</div><span class="n">${d}</span></button>`;
   }
   el.innerHTML=h;

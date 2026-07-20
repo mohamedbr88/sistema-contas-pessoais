@@ -7,7 +7,8 @@ import { contasApi } from '../api.js';
 import { doMes } from './mes.js';
 import { render } from '../bus.js';
 import { MESES, S, V, cor, dia, esc, novoId } from '../estado.js?v=20260720-4';
-import { M, VE } from '../moeda.js';
+import { Mc, VE } from '../moeda.js';
+import { somaEstimado } from '../calculos.js?v=20260720-4';
 import { toast } from '../ui.js';
 
 export function lancarFixos(ano,mes){
@@ -56,12 +57,13 @@ function periodo(f){
 
 export function telaFixos(){
   const ativos=S.fixos.filter(f=>f.ativo);
+  const totalAtivosBRL = somaEstimado(ativos);
   const jaTem=doMes().length;
   return `<div class="card">
     <div class="card-hd"><h3>Contas fixas do mês</h3>
       <div class="dir">
         <button class="btn-2" id="novaFixa">+ Nova fixa</button>
-        <span class="mono" style="font-size:12px;color:var(--ink-2)">${ativos.length} ativas · ${M(ativos.reduce((s,f)=>s+(f.est||0),0))}/mês</span>
+        <span class="mono" style="font-size:12px;color:var(--ink-2)">${ativos.length} ativas · ${Mc(totalAtivosBRL)}/mês</span>
         <button class="btn-2" id="gerar">Só em ${MESES[V.mes-1]}</button>
         <button class="btn-cofre btn" id="gerarAno">Lançar de ${MESES[V.mes-1]} até dezembro</button>
       </div></div>

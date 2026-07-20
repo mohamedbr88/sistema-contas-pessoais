@@ -11,7 +11,7 @@ const MOEDAS_ORDEM = ['BRL', 'USD', 'EUR', 'PYG'];
 const MOEDA_ICONE = { BRL: 'R$', USD: 'US$', EUR: '€', PYG: '₲' };
 const MOEDA_COR = { BRL: 'var(--cofre)', USD: 'var(--azul)', EUR: '#7A3E9D', PYG: '#D97706' };
 const moedaSelecionada = () => S.moeda || 'BRL';
-const mostrarTodas = () => V.viagemMoedas === 'todas';
+const mostrarTodas = () => false;
 
 function horaNormalizada(hora) {
   if (!hora) return '';
@@ -148,9 +148,10 @@ function resumoDia(viagem, iso) {
     if (item.pg && item.pg !== '—') pagamentos.set(item.pg, (pagamentos.get(item.pg) || 0) + 1);
   });
 
-  const total = lancamentos.reduce((s, item) => s + (item.valor || 0), 0);
-  const maior = lancamentos.reduce((maximo, item) => (item.valor > maximo.valor ? item : maximo), { valor: 0 });
-  const menor = lancamentos.length ? lancamentos.reduce((minimo, item) => (item.valor < minimo.valor ? item : minimo), lancamentos[0]) : { valor: 0 };
+  const emBRL = item => conv(item.valor || 0, item.moeda || viagem.moeda || 'EUR', 'BRL');
+  const totalBRL = lancamentos.reduce((s, item) => s + emBRL(item), 0);
+  const maior = lancamentos.reduce((maximo, item) => (emBRL(item) > emBRL(maximo) ? item : maximo), { valor: 0, moeda: viagem.moeda || 'EUR' });
+  const menor = lancamentos.length ? lancamentos.reduce((minimo, item) => (emBRL(item) < emBRL(minimo) ? item : minimo), lancamentos[0]) : { valor: 0, moeda: viagem.moeda || 'EUR' };
   const observacoes = lancamentos.map(item => item.obs).filter(Boolean);
 
   return {
@@ -160,8 +161,8 @@ function resumoDia(viagem, iso) {
     hotel,
     lancamentos,
     categorias: Array.from(categorias),
-    total,
-    media: lancamentos.length ? total / lancamentos.length : 0,
+    totalBRL,
+    mediaBRL: lancamentos.length ? totalBRL / lancamentos.length : 0,
     maior,
     menor,
     pagamentos: [...pagamentos.entries()].sort((a, b) => b[1] - a[1]),
@@ -260,7 +261,7 @@ function tooltipDia(dia, viagem) {
   const linhas = [
     `${dia.dataCurta} · ${dia.cidade}`,
     dia.hotel ? `Hotel: ${dia.hotel}` : 'Sem hospedagem',
-    `Total: ${valorAtual(dia.total, viagem.moeda || 'EUR')}`,
+    `Total: ${M(dia.totalBRL, 'BRL')}`,
     `Lançamentos: ${dia.lancamentos.length}`,
     dia.categorias.length ? `Categorias: ${dia.categorias.join(', ')}` : 'Categorias: —'
   ];
@@ -276,7 +277,7 @@ function calendarioHtml(viagem, dias, selecionado) {
     return `<button class="viagem-dia${ativo ? ' is-active' : ''}${hoje ? ' is-hoje' : ''}" data-vdia="${iso}" title="${esc(tooltipDia(dia, viagem))}">
       <div class="viagem-dia-data"><strong>${dia.dataCurta}</strong><span>${iso === viagem.inicio ? 'Início' : iso === viagem.fim ? 'Fim' : ''}</span></div>
       <div class="viagem-dia-lugar"><b>${esc(dia.cidade)}</b><small>${dia.hotel ? esc(dia.hotel) : 'Sem hospedagem'}</small></div>
-      <div class="viagem-dia-total"><b>${valorAtual(dia.total, viagem.moeda || 'EUR')}</b><small>${dia.lancamentos.length} lançamentos</small></div>
+      <div class="viagem-dia-total"><b>${M(dia.totalBRL, 'BRL')}</b><small>${dia.lancamentos.length} lançamentos</small></div>
       <div class="viagem-dia-indicadores">${indicacaoCategoria(dia)}</div>
     </button>`;
   }).join('');
@@ -287,6 +288,8 @@ function resumoLateral(dia, viagem, exibir) {
   const maiorMoeda = dia.maior?.moeda || viagem.moeda || 'EUR';
   const menorValor = dia.menor?.valor || 0;
   const menorMoeda = dia.menor?.moeda || viagem.moeda || 'EUR';
+  const totalDiaLocal = conv(dia.totalBRL || 0, 'BRL', exibir);
+  const mediaDiaLocal = conv(dia.mediaBRL || 0, 'BRL', exibir);
   const valorViagem = viagem.moeda || 'EUR';
   const pagamentos = dia.pagamentos.length ? dia.pagamentos.map(([pg, qtd]) => `${esc(pg)} · ${qtd}`).join(' · ') : '—';
   return `<div class="viagem-resumo-dia">
@@ -298,8 +301,8 @@ function resumoLateral(dia, viagem, exibir) {
       <span class="pastilha" style="--c:var(--cofre)">${dia.lancamentos.length} lançamentos</span>
     </div>
     <div class="viagem-resumo-numeros">
-      <div><span>Total gasto</span><b>${valorExibido(dia.total, valorViagem, exibir)}</b></div>
-      <div><span>Média do dia</span><b>${valorExibido(dia.media, valorViagem, exibir)}</b></div>
+      <div><span>Total gasto</span><b>${valorMoedaLocal(totalDiaLocal, exibir)}</b></div>
+      <div><span>Média do dia</span><b>${valorMoedaLocal(mediaDiaLocal, exibir)}</b></div>
       <div><span>Maior gasto</span><b>${valorExibido(maiorValor, maiorMoeda, exibir)}</b></div>
       <div><span>Menor gasto</span><b>${valorExibido(menorValor, menorMoeda, exibir)}</b></div>
     </div>
@@ -321,7 +324,7 @@ function resumoLateral(dia, viagem, exibir) {
         <span class="mono">${valorExibido(item.valor, item.moeda, exibir)}</span>
       </div>`).join('') : '<div class="vazio viagem-vazio-dia">Nenhum lançamento neste dia.</div>'}
     </div>
-    ${mostrarTodas() ? `<div class="viagem-comparacao">${compararMoedas(dia.total, valorViagem)}</div>` : ''}
+    ${mostrarTodas() ? `<div class="viagem-comparacao">${compararMoedas(totalDiaLocal, exibir)}</div>` : ''}
   </div>`;
 }
 
@@ -344,23 +347,27 @@ export function telaViagem(){
       <p style="margin:6px 0 14px">Crie uma viagem para lançar hospedagem e gastos do dia.</p>
       <button class="btn btn-cofre" id="novaViagem">+ Nova viagem</button></div></div>`;
 
-  const totalHospedagem = viagem.hosp.reduce((s, h) => s + (h.valor || 0), 0);
-  const totalGastos = viagem.gastos.reduce((s, g) => s + (g.valor || 0), 0);
+  const exibir = moedaSelecionada();
+  const totalHospedagemLocal = viagem.hosp.reduce((s, h) => s + conv(h.valor || 0, h.moeda || viagem.moeda || 'EUR', exibir), 0);
+  const totalGastosLocal = viagem.gastos.reduce((s, g) => s + conv(g.valor || 0, g.moeda || viagem.moeda || 'EUR', exibir), 0);
+  const totalViagemLocal = totalHospedagemLocal + totalGastosLocal;
   const noites = viagem.hosp.reduce((s, h) => s + (h.noites || 1), 0);
   const totalDias = Math.round((new Date(viagem.fim) - new Date(viagem.inicio)) / 864e5) + 1;
   const moedaBase = viagem.moeda || 'EUR';
   const cambio = viagem.cambio || S.cambio || 1;
-  const exibir = moedaSelecionada();
-  const dias = intervaloDias(viagem).map(iso => resumoDia(viagem, iso));
+  const diasIntervalo = intervaloDias(viagem);
+  const dias = diasIntervalo.map(iso => resumoDia(viagem, iso));
+  const diaSelecionado = dias.find(d => d.iso === V.viagemDiaSel) || dias[0] || null;
+  if (diaSelecionado && V.viagemDiaSel !== diaSelecionado.iso) V.viagemDiaSel = diaSelecionado.iso;
   const grafico = resumoGrafico(viagem, exibir);
   const fluxo = estruturaFluxoViagem(grafico.dias, grafico.mediaDiaria);
   const categorias = CATD.map(cat => ({
     cat,
-    valor: viagem.gastos.filter(g => g.cat === cat).reduce((s, g) => s + (g.valor || 0), 0)
+    valor: viagem.gastos.filter(g => g.cat === cat).reduce((s, g) => s + conv(g.valor || 0, g.moeda || moedaBase, exibir), 0)
   })).filter(x => x.valor).sort((a, b) => b.valor - a.valor);
   const maxCategoria = Math.max(...categorias.map(x => x.valor), 1);
   const gastosPorDia = viagem.gastos.reduce((acc, g) => {
-    acc[g.data] = (acc[g.data] || 0) + (g.valor || 0);
+    acc[g.data] = (acc[g.data] || 0) + conv(g.valor || 0, g.moeda || moedaBase, exibir);
     return acc;
   }, {});
   const maxDia = Math.max(...Object.values(gastosPorDia), 1);
@@ -378,8 +385,17 @@ export function telaViagem(){
       <span class="pastilha" style="--c:${viagem.status === 'em_viagem' ? 'var(--cofre)' : viagem.status === 'planejamento' ? 'var(--azul)' : 'var(--ink-2)'}">${STATUS[viagem.status] || viagem.status}</span>
       <span class="mono">exibindo em ${MOEDAS[exibir].n} · base da viagem ${MOEDAS[moedaBase].n} · câmbio ${M(cambio, 'BRL', { moeda:'BRL', converter:false })} / ${MOEDAS[moedaBase].n}</span>
       ${viagem.orcamento ? `<span class="mono">orçamento ${valorExibido(viagem.orcamento, moedaBase, exibir)}</span>` : ''}
-      <label class="viagem-compare-toggle"><input type="checkbox" id="viagemMostrarTodas" ${mostrarTodas() ? 'checked' : ''}> Mostrar todas as moedas</label>
       <button class="lnk" id="editarViagem">editar viagem</button>
+    </div>
+    <div class="viagem-topo-grid">
+      <div class="card viagem-calendario-card">
+        <div class="card-hd"><h3>Calendário da viagem</h3></div>
+        <div class="viagem-calendar-lista">${calendarioHtml(viagem, diasIntervalo, diaSelecionado || dias[0])}</div>
+      </div>
+      <div class="card viagem-resumo-card">
+        <div class="card-hd"><h3>Resumo do dia</h3></div>
+        ${diaSelecionado ? resumoLateral(diaSelecionado, viagem, exibir) : '<div class="vazio viagem-vazio-dia">Selecione um dia no calendário.</div>'}
+      </div>
     </div>
     <div class="card viagem-grafico-card">
       <div class="card-hd viagem-grafico-hd">
@@ -415,18 +431,18 @@ export function telaViagem(){
         <span><i class="avg"></i>Média diária</span>
       </div>
       <div class="viagem-grafico-resumo">
-        <div class="viagem-grafico-kpi"><span>Total da viagem</span><b>${valorExibido(totalHospedagem + totalGastos, moedaBase, exibir)}</b></div>
-        <div class="viagem-grafico-kpi"><span>Gastos da viagem</span><b>${valorExibido(totalGastos, moedaBase, exibir)}</b></div>
+        <div class="viagem-grafico-kpi"><span>Total da viagem</span><b>${valorMoedaLocal(totalViagemLocal, exibir)}</b></div>
+        <div class="viagem-grafico-kpi"><span>Gastos da viagem</span><b>${valorMoedaLocal(totalGastosLocal, exibir)}</b></div>
         <div class="viagem-grafico-kpi"><span>Média diária</span><b>${valorMoedaLocal(grafico.mediaDiaria, exibir)}</b></div>
         <div class="viagem-grafico-kpi"><span>Maior dia</span><b>${grafico.diaMaior ? `${grafico.diaMaior.dataCurta} · ${valorMoedaLocal(grafico.diaMaior.totalLocal, exibir)}` : 'Sem dados'}</b></div>
       </div>
     </div>
     <div class="viagem-kpi-faixa">
       <div class="kpis viagem-kpis">
-        ${resumoMini(viagem, 'Hospedagem', totalHospedagem, moedaBase, `${noites} noites · ${valorExibido(totalHospedagem / (noites || 1), moedaBase, exibir)}/noite`)}
-        ${resumoMini(viagem, 'Gastos do dia', totalGastos, moedaBase, `${viagem.gastos.length} lançamentos`)}
-        ${resumoMini(viagem, 'Total da viagem', totalHospedagem + totalGastos, moedaBase, `${totalDias} dias`)}
-        ${resumoMini(viagem, 'Média diária', (totalHospedagem + totalGastos) / totalDias, moedaBase, `hosp ${valorExibido(totalHospedagem / (noites || 1), moedaBase, exibir)} + dia ${valorExibido(totalGastos / totalDias, moedaBase, exibir)}`)}
+        ${resumoMini(viagem, 'Hospedagem', totalHospedagemLocal, exibir, `${noites} noites · ${valorMoedaLocal(totalHospedagemLocal / (noites || 1), exibir)}/noite`)}
+        ${resumoMini(viagem, 'Gastos do dia', totalGastosLocal, exibir, `${viagem.gastos.length} lançamentos`)}
+        ${resumoMini(viagem, 'Total da viagem', totalViagemLocal, exibir, `${totalDias} dias`)}
+        ${resumoMini(viagem, 'Média diária', totalViagemLocal / totalDias, exibir, `hosp ${valorMoedaLocal(totalHospedagemLocal / (noites || 1), exibir)} + dia ${valorMoedaLocal(totalGastosLocal / totalDias, exibir)}`)}
       </div>
     </div>
     <div class="grid2 viagem-secundaria">
@@ -444,24 +460,24 @@ export function telaViagem(){
           ${Object.keys(gastosPorDia).sort().map(iso => `<div class="viagem-dia-bar${gastosPorDia[iso] === maxDia ? ' is-max' : ''}" title="${tooltipDia(resumoDia(viagem, iso), viagem)}" style="flex:1;height:${gastosPorDia[iso] / maxDia * 100}%"></div>`).join('')}
         </div>
         <div style="padding:0 14px 10px;font-size:10px;color:var(--ink-2);display:flex;justify-content:space-between">
-          <span class="mono">${formatoCurto(viagem.inicio)}</span><span class="mono">maior dia: ${valorAtual(maxDia, moedaBase)}</span><span class="mono">${formatoCurto(viagem.fim)}</span>
+          <span class="mono">${formatoCurto(viagem.inicio)}</span><span class="mono">maior dia: ${valorMoedaLocal(maxDia, exibir)}</span><span class="mono">${formatoCurto(viagem.fim)}</span>
         </div>
       </div>
     </div>
     <div class="card viagem-tabela-card">
-      <div class="card-hd"><h3>Hospedagem</h3><div class="dir"><span class="mono" style="font-size:12px;color:var(--ink-2)">${valorExibido(totalHospedagem, moedaBase, exibir)}</span><button class="btn-2" id="addH">+ Estadia</button></div></div>
+      <div class="card-hd"><h3>Hospedagem</h3><div class="dir"><span class="mono" style="font-size:12px;color:var(--ink-2)">${valorMoedaLocal(totalHospedagemLocal, exibir)}</span><button class="btn-2" id="addH">+ Estadia</button></div></div>
       <table class="tmes">
         <thead><tr><th>Entrada</th><th>Hotel</th><th>Cidade</th><th class="num">Noites</th><th class="num">Valor (${MOEDAS[exibir].n})</th><th class="num">Por noite</th><th></th><th></th></tr></thead>
         <tbody>${!viagem.hosp.length ? '<tr><td colspan="8" class="vazio" style="padding:22px">Nenhuma hospedagem ainda. Use <b style="color:var(--ink)">+ Estadia</b>.</td></tr>' : viagem.hosp.slice().sort((a, b) => a.data.localeCompare(b.data)).map(h => `<tr class="lin" style="--c:${cor('Hospedagem')}"><td class="mono" style="font-size:12px;color:var(--ink-2)">${formatoCurto(h.data)}</td><td>${esc(h.nome)}</td><td style="font-size:12px;color:var(--ink-2)">${esc(h.cidade)}</td><td class="num">${h.noites}</td><td class="num" style="font-weight:600">${valorAtual(h.valor, h.moeda || moedaBase)}</td><td class="num" style="font-size:12px;color:var(--ink-2)">${valorExibido(h.valor / (h.noites || 1), h.moeda || moedaBase, exibir)}</td><td></td><td style="text-align:right"><button class="acao" data-eh="${h.data}">editar</button></td></tr>`).join('')}</tbody>
-        <tfoot><tr class="tot"><td colspan="3">${viagem.hosp.length} estadias</td><td class="num">${noites}</td><td class="num">${valorExibido(totalHospedagem, moedaBase, exibir)}</td><td class="num">${valorExibido(totalHospedagem / (noites || 1), moedaBase, exibir)}</td><td colspan="2"></td></tr></tfoot>
+        <tfoot><tr class="tot"><td colspan="3">${viagem.hosp.length} estadias</td><td class="num">${noites}</td><td class="num">${valorMoedaLocal(totalHospedagemLocal, exibir)}</td><td class="num">${valorMoedaLocal(totalHospedagemLocal / (noites || 1), exibir)}</td><td colspan="2"></td></tr></tfoot>
       </table>
     </div>
     <div class="card viagem-tabela-card">
-      <div class="card-hd"><h3>Gastos do dia</h3><div class="dir"><span class="mono" style="font-size:12px;color:var(--ink-2)">${valorExibido(totalGastos, moedaBase, exibir)}</span><button class="btn" id="addG">+ Gasto</button></div></div>
+      <div class="card-hd"><h3>Gastos do dia</h3><div class="dir"><span class="mono" style="font-size:12px;color:var(--ink-2)">${valorMoedaLocal(totalGastosLocal, exibir)}</span><button class="btn" id="addG">+ Gasto</button></div></div>
       <div style="max-height:520px;overflow:auto">
         <table class="tmes">
           <thead><tr><th>Dia</th><th>O quê</th><th>Categoria</th><th>Pgto</th><th class="num">Valor (${MOEDAS[exibir].n})</th><th class="num">Detalhe</th><th></th><th></th></tr></thead>
-          <tbody>${!viagem.gastos.length ? '<tr><td colspan="8" class="vazio" style="padding:22px">Nenhum gasto ainda. Use <b style="color:var(--ink)">+ Gasto</b>.</td></tr>' : viagem.gastos.slice().sort((a, b) => a.data.localeCompare(b.data) || horaOrdenacao(a).localeCompare(horaOrdenacao(b))).map(g => `<tr class="lin" style="--c:${cor(g.cat)}"><td class="mono" style="font-size:12px;color:var(--ink-2)">${formatoCurto(g.data)}<div style="font-size:10px;opacity:.85;margin-top:2px">${horaExibicao(g)}</div></td><td>${esc(g.desc)}${g.obs ? `<div style="font-size:11px;color:var(--ink-2);margin-top:2px">${esc(g.obs)}</div>` : ''}</td><td><span class="pill" style="background:${cor(g.cat)}1A;color:${cor(g.cat)}">${esc(g.cat)}</span></td><td style="font-size:12px;color:var(--ink-2)">${esc(g.pg)}</td><td class="num" style="font-weight:600">${valorAtual(g.valor, g.moeda || moedaBase)}</td><td class="num" style="font-size:12px;color:var(--ink-2)">${mostrarTodas() ? compararMoedas(g.valor, g.moeda || moedaBase) : '—'}</td><td></td><td style="text-align:right"><button class="acao" data-eg="${g.id}">editar</button></td></tr>`).join('')}</tbody>
+          <tbody>${!viagem.gastos.length ? '<tr><td colspan="8" class="vazio" style="padding:22px">Nenhum gasto ainda. Use <b style="color:var(--ink)">+ Gasto</b>.</td></tr>' : viagem.gastos.slice().sort((a, b) => a.data.localeCompare(b.data) || horaOrdenacao(a).localeCompare(horaOrdenacao(b))).map(g => `<tr class="lin" style="--c:${cor(g.cat)}"><td class="mono" style="font-size:12px;color:var(--ink-2)">${formatoCurto(g.data)}<div style="font-size:10px;opacity:.85;margin-top:2px">${horaExibicao(g)}</div></td><td>${esc(g.desc)}${g.obs ? `<div style="font-size:11px;color:var(--ink-2);margin-top:2px">${esc(g.obs)}</div>` : ''}</td><td><span class="pill" style="background:${cor(g.cat)}1A;color:${cor(g.cat)}">${esc(g.cat)}</span></td><td style="font-size:12px;color:var(--ink-2)">${esc(g.pg)}</td><td class="num" style="font-weight:600">${valorAtual(g.valor, g.moeda || moedaBase)}</td><td class="num" style="font-size:12px;color:var(--ink-2)">${valorMoedaLocal(g.valor, g.moeda || moedaBase)}</td><td></td><td style="text-align:right"><button class="acao" data-eg="${g.id}">editar</button></td></tr>`).join('')}</tbody>
         </table>
       </div>
     </div>
