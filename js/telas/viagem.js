@@ -2,8 +2,8 @@
 //  Tela "Viagem": calendário diário, resumo lateral e conversão única.
 // ============================================================================
 
-import { CATD, PAGD, S, V, STATUS, cor, esc, hojeISO, viagemAtual } from '../estado.js?v=20260720-4';
-import { M, MOEDAS } from '../moeda.js?v=20260720-4';
+import { CATD, PAGD, S, V, STATUS, MESES, cor, esc, hojeISO, viagemAtual } from '../estado.js?v=20260720-4';
+import { M, MOEDAS, conv } from '../moeda.js?v=20260720-4';
 import { viagemApi } from '../api.js?v=20260720-4';
 import { formGen } from '../ui.js?v=20260720-4';
 
@@ -36,6 +36,10 @@ function valorExibido(valor, origem, destino = moedaSelecionada()) {
 
 function valorAtual(valor, origem) {
   return valorExibido(valor, origem, moedaSelecionada());
+}
+
+function valorMoedaLocal(valor, moeda) {
+  return M(valor, moeda, { moeda, converter: false });
 }
 
 function diaISO(base, deslocamento) {
@@ -165,6 +169,76 @@ function resumoDia(viagem, iso) {
   };
 }
 
+function formatoCompleto(iso) {
+  const dia = Number(iso.slice(8, 10));
+  const mes = Number(iso.slice(5, 7));
+  const ano = iso.slice(0, 4);
+  return `${dia} de ${MESES[mes - 1].toLowerCase()} de ${ano}`;
+}
+
+function resumoGrafico(viagem, exibir) {
+  const dias = intervaloDias(viagem).map(iso => {
+    const dia = resumoDia(viagem, iso);
+    const lancamentos = dia.lancamentos.map(item => ({
+      ...item,
+      valorLocal: conv(item.valor || 0, item.moeda || viagem.moeda || 'EUR', exibir)
+    }));
+    const total = lancamentos.reduce((s, item) => s + item.valorLocal, 0);
+    const maior = lancamentos.reduce((maximo, item) => (item.valorLocal > maximo.valorLocal ? item : maximo), { valorLocal: 0 });
+    return { ...dia, lancamentos, totalLocal: total, maiorLocal: maior };
+  });
+  const max = Math.max(...dias.map(item => item.totalLocal), 1);
+  const totalViagem = dias.reduce((s, item) => s + item.totalLocal, 0);
+  const mediaDiaria = dias.length ? totalViagem / dias.length : 0;
+  const diaMaior = dias.filter(item => item.totalLocal > 0).sort((a, b) => b.totalLocal - a.totalLocal || a.iso.localeCompare(b.iso))[0] || null;
+  const diasSemGastos = dias.filter(item => item.totalLocal === 0).length;
+  return { dias, max, totalViagem, mediaDiaria, diaMaior, diasSemGastos };
+}
+
+function estruturaFluxoViagem(itensDia, mediaDiaria) {
+  const mobile = typeof window !== 'undefined' && window.innerWidth <= 720;
+  const w = 700, h = mobile ? 210 : 180, padX = 42, padY = mobile ? 26 : 22;
+  const usableW = w - padX * 2;
+  const usableH = h - padY * 2;
+  const n = Math.max(1, itensDia.length);
+  const step = usableW / n;
+  const barW = Math.max(2.2, step * (mobile ? 0.72 : 0.68));
+  const maxValor = Math.max(...itensDia.map(item => item.totalLocal), mediaDiaria || 0, 0);
+  const maxEscala = maxValor || 1;
+  const yPorValor = valor => padY + usableH - ((valor / maxEscala) * usableH);
+  const ticksY = Array.from({ length: 4 }, (_, i) => {
+    const ratio = i / 3;
+    const valor = maxEscala * (1 - ratio);
+    const y = padY + usableH * ratio;
+    return { valor, y };
+  });
+  const ticksX = itensDia.filter((_, idx) => idx === 0 || idx === itensDia.length - 1 || idx % Math.max(1, Math.ceil(itensDia.length / 6)) === 0)
+    .map((item, idx) => ({ dia: item.dataCurta, x: padX + (idx * step) + (step / 2) }));
+  const bars = itensDia.map((item, idx) => {
+    const x = padX + (idx * step) + ((step - barW) / 2);
+    const hBar = item.totalLocal ? Math.max((item.totalLocal / maxEscala) * usableH, 2.5) : 0;
+    const y = padY + usableH - hBar;
+    return { ...item, x, y, w: barW, h: hBar };
+  });
+  return {
+    w, h, padX, padY, usableH, ticksY, ticksX,
+    yMedia: yPorValor(mediaDiaria || 0),
+    bars
+  };
+}
+
+function tooltipGastoDiaViagem(item) {
+  const linhas = [
+    formatoCompleto(item.iso),
+    item.cidade || 'Sem cidade',
+    valorMoedaLocal(item.totalLocal, moedaSelecionada()),
+    `${item.lancamentos.length} lançamento(s)`,
+    `Maior gasto: ${item.maiorLocal?.valorLocal ? valorMoedaLocal(item.maiorLocal.valorLocal, moedaSelecionada()) : '—'}`,
+    item.categorias.length ? `Categorias: ${item.categorias.join(', ')}` : 'Categorias: —'
+  ];
+  return linhas.join('\n');
+}
+
 function tooltipDia(dia, viagem) {
   const linhas = [
     `${dia.dataCurta} · ${dia.cidade}`,
@@ -263,8 +337,8 @@ export function telaViagem(){
   const cambio = viagem.cambio || S.cambio || 1;
   const exibir = moedaSelecionada();
   const dias = intervaloDias(viagem).map(iso => resumoDia(viagem, iso));
-  const selecionado = dias.find(d => d.iso === V.viagemDiaSel) || dias[0];
-  if (selecionado && V.viagemDiaSel !== selecionado.iso) V.viagemDiaSel = selecionado.iso;
+  const grafico = resumoGrafico(viagem, exibir);
+  const fluxo = estruturaFluxoViagem(grafico.dias, grafico.mediaDiaria);
   const categorias = CATD.map(cat => ({
     cat,
     valor: viagem.gastos.filter(g => g.cat === cat).reduce((s, g) => s + (g.valor || 0), 0)
@@ -291,16 +365,40 @@ export function telaViagem(){
       ${viagem.orcamento ? `<span class="mono">orçamento ${valorExibido(viagem.orcamento, moedaBase, exibir)}</span>` : ''}
       <button class="lnk" id="editarViagem">editar viagem</button>
     </div>
-    <div class="viagem-topo-grid">
-      <div class="card viagem-calendario-card">
-        <div class="card-hd"><h3>Calendário Diário da Viagem</h3><div class="dir"><span class="mono">${dias.length} dias</span></div></div>
-        <div class="viagem-calendar-lista">
-          ${calendarioHtml(viagem, dias.map(d => d.iso), selecionado)}
+    <div class="card viagem-grafico-card">
+      <div class="card-hd"><h3>GASTO POR DIA — ${esc(viagem.destino || viagem.nome)}</h3></div>
+      <div class="grafico-cabecalho">
+        <p>Veja quanto foi gasto em cada dia da viagem.</p>
+        <div class="grafico-legend-inline">
+          <span><i class="bar"></i>Gasto do dia</span>
+          <span><i class="avg"></i>Média diária</span>
         </div>
       </div>
-      <div class="card viagem-resumo-card">
-        <div class="card-hd"><h3>Resumo lateral</h3><div class="dir"><span class="mono">${selecionado?.dataCurta || ''}</span></div></div>
-        ${selecionado ? resumoLateral(selecionado, viagem, exibir) : '<div class="vazio viagem-vazio-dia">Selecione um dia no calendário.</div>'}
+      <div class="grafico-diario">
+        <svg class="diario-evolucao" viewBox="0 0 ${fluxo.w} ${fluxo.h}" role="img" aria-label="Gasto por dia da viagem">
+          <rect x="0" y="0" width="${fluxo.w}" height="${fluxo.h}" rx="10" fill="#F7FAF9"></rect>
+          ${fluxo.ticksY.map(t => `<g><line x1="${fluxo.padX}" y1="${t.y.toFixed(1)}" x2="${fluxo.w - fluxo.padX}" y2="${t.y.toFixed(1)}" stroke="#D7E2E0" stroke-dasharray="4 4"></line><text x="10" y="${(t.y + 4).toFixed(1)}" font-size="11" fill="#5C7079">${esc(valorMoedaLocal(t.valor, exibir))}</text></g>`).join('')}
+          ${fluxo.bars.map(item => {
+            const destaque = grafico.diaMaior && grafico.diaMaior.iso === item.iso;
+            const xCentro = item.x + (item.w / 2);
+            const tip = tooltipGastoDiaViagem(item);
+            return `<g class="fluxo-bar-group${destaque ? ' is-peak' : ''}" data-fluxo-tip="${esc(tip)}" style="cursor:pointer">
+              <line class="fluxo-guide" x1="${xCentro.toFixed(1)}" y1="${fluxo.padY.toFixed(1)}" x2="${xCentro.toFixed(1)}" y2="${(fluxo.padY + fluxo.usableH).toFixed(1)}"></line>
+              <rect class="fluxo-bar" x="${item.x.toFixed(1)}" y="${item.y.toFixed(1)}" width="${item.w.toFixed(1)}" height="${item.h.toFixed(1)}" rx="3.8" fill="${destaque ? '#116A66' : '#D84315'}" opacity="${item.totalLocal ? (destaque ? '0.98' : '0.84') : '0.24'}"></rect>
+              <title>${tip}</title>
+            </g>`;
+          }).join('')}
+          <line x1="${fluxo.padX}" y1="${fluxo.yMedia.toFixed(1)}" x2="${fluxo.w - fluxo.padX}" y2="${fluxo.yMedia.toFixed(1)}" stroke="#0D5C56" stroke-width="2.6" stroke-dasharray="7 4"></line>
+          ${fluxo.ticksX.map(t => `<text x="${t.x.toFixed(1)}" y="${fluxo.h - 6}" text-anchor="middle" font-size="11" fill="#5C7079">${esc(t.dia)}</text>`).join('')}
+          <text x="14" y="16" font-size="11.5" font-weight="600" fill="#3E525B">Valor por dia</text>
+          <text x="${fluxo.w / 2}" y="${fluxo.h - 20}" text-anchor="middle" font-size="11" fill="#5C7079">Dias da viagem</text>
+        </svg>
+      </div>
+      <div class="grafico-legenda fluxo-resumo">
+        <span>Total gasto: <b>${valorMoedaLocal(grafico.totalViagem, exibir)}</b></span>
+        <span>Média diária: <b>${valorMoedaLocal(grafico.mediaDiaria, exibir)}</b></span>
+        <span>Maior dia: <b>${grafico.diaMaior ? `${grafico.diaMaior.dataCurta} — ${valorMoedaLocal(grafico.diaMaior.totalLocal, exibir)}` : 'Sem dados'}</b></span>
+        <span>Dias sem gastos: <b>${grafico.diasSemGastos}</b></span>
       </div>
     </div>
     <div class="viagem-kpi-faixa">
