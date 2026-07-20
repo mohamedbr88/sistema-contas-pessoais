@@ -23,6 +23,7 @@ import { telaDiario, formDiario, formMetaDiario } from './telas/diario.js?v=2026
 import { telaViagem, formHosp, formGasto } from './telas/viagem.js?v=20260720-4';
 import { formViagem } from './telas/viagem_form.js?v=20260720-4';
 import { formFixo } from './telas/fixo_form.js?v=20260720-4';
+import { telaInsights, exportarInsightsCsv, exportarInsightsXls, imprimirInsights } from './telas/insights.js?v=20260720-5';
 import { telaFixos, gerarMes, gerarAno }   from './telas/fixos.js?v=20260720-4';
 import { telaDados }             from './telas/dados.js?v=20260720-4';
 import { telaDiagnostico, executarSincronizacao } from './telas/diagnostico.js?v=20260720-4';
@@ -96,7 +97,7 @@ export function render() {
     V.aba === 'mes'    ? telaMes()    : V.aba === 'painel' ? telaPainel() :
     V.aba === 'ano'    ? telaAno()    : V.aba === 'diario' ? telaDiario() :
     V.aba === 'viagem' ? telaViagem() : V.aba === 'fixos'  ? telaFixos()  :
-    V.aba === 'diagnostico' ? telaDiagnostico() : telaDados();
+    V.aba === 'insights' ? telaInsights() : V.aba === 'diagnostico' ? telaDiagnostico() : telaDados();
 
   if (!esconderFita) fita();
   else $('dias').innerHTML = '';
@@ -293,6 +294,10 @@ function liga() {
   on('expJson', 'onclick', () => baixar(`contas-backup-${new Date().toISOString().slice(0,10)}.json`,
     JSON.stringify({ tx:S.tx, fixos:S.fixos, diario:S.diario, viagens:S.viagens }, null, 1), 'application/json'));
   on('expCsv', 'onclick', expCsv);
+  on('expInsightsCsv', 'onclick', exportarInsightsCsv);
+  on('expInsightsXls', 'onclick', exportarInsightsXls);
+  on('expInsightsPdf', 'onclick', () => { try { imprimirInsights(); } catch (e) { toast(e.message || 'Não imprimiu'); } });
+  on('expInsightsPrint', 'onclick', () => { try { imprimirInsights(); } catch (e) { toast(e.message || 'Não imprimiu'); } });
 
   on('semear', 'onclick', async () => {
     if (temBase() && !confirm('Sua conta já tem dados. Importar a base inicial vai duplicar. Continuar mesmo assim?')) return;

@@ -518,6 +518,56 @@ th{font-weight:600}
 .diario-gasto-dia-labels .diario-dia-col-label{flex:1;text-align:center}
 .diario-gasto-dia-meta{padding-top:8px;font-size:10px;color:var(--ink-2);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
 
+/* ---- insights / inteligência financeira ---- */
+.insights-dashboard{display:grid;gap:14px}
+.insights-hero{border-color:#D9E7E3;box-shadow:0 12px 28px rgba(14,38,36,.07)}
+.insights-hero .kpis{grid-template-columns:repeat(4,minmax(0,1fr));background:var(--line)}
+.insights-hero .kpi{min-height:108px}
+.insights-resumo{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(280px,.9fr);gap:1px;background:var(--line)}
+.insights-resumo-texto,.insights-spark-card{background:var(--card)}
+.insights-resumo-texto{padding:16px 18px;display:grid;gap:10px}
+.insights-resumo-texto p{font-size:12.5px;line-height:1.5;color:var(--ink-2)}
+.insights-resumo-texto b{color:var(--ink)}
+.insights-moedas{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:12px 18px 16px;background:var(--card);border-top:1px solid var(--line)}
+.insight-moeda{border:1px solid var(--line);border-radius:12px;background:#FBFDFC;padding:10px 11px;display:grid;gap:4px;box-shadow:0 1px 0 rgba(255,255,255,.9) inset}
+.insight-moeda span{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.insight-moeda b{font-family:var(--mono);font-size:13px;line-height:1.25;color:var(--ink)}
+.insight-moeda small{font-size:10px;color:var(--ink-2);line-height:1.25}
+.insights-spark-card{padding:16px 18px;display:grid;gap:8px;align-content:start}
+.insights-spark-title{font-family:var(--disp);font-size:12px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--acc)}
+.insights-sparkline{display:block;width:100%;height:auto;min-height:110px;background:linear-gradient(180deg,#FFFFFF 0%,#F8FBFA 100%);border:1px solid #E4EEEC;border-radius:12px;padding:8px}
+.insights-spark-legend{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.insights-grid{align-items:start}
+.insights-blocos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:12px 14px 14px}
+.insights-line{border:1px solid var(--line);border-radius:12px;background:#FBFDFC;padding:10px 11px;display:grid;gap:4px;box-shadow:0 1px 0 rgba(255,255,255,.9) inset}
+.insights-line span{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.insights-line b{font-family:var(--mono);font-size:13px;line-height:1.25;color:var(--ink)}
+.insights-lista{padding:12px 14px 14px;display:grid;gap:8px}
+.insight-alerta{border:1px solid var(--line);border-radius:12px;background:linear-gradient(180deg,#fff 0%,#FBFDFC 100%);padding:10px 11px;display:grid;gap:4px;box-shadow:0 1px 0 rgba(255,255,255,.9) inset}
+.insight-alerta span,.insight-alerta small{font-size:11px;color:var(--ink-2);line-height:1.35}
+.insight-alerta b{font-family:var(--mono);font-size:13px;color:var(--ink)}
+.insights-subtitle{padding:0 14px 8px;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2)}
+.insights-bar-list{padding:0 0 12px}
+.insights-barra .lab b{display:block;font-size:12.5px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.insights-barra .lab small{display:block;font-size:11px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.insights-barra .v{font-family:var(--mono);font-size:12px;white-space:nowrap}
+.insights-exportacoes{display:flex;gap:8px;flex-wrap:wrap;padding:12px 14px 4px}
+.insights-exportacoes .btn,.insights-exportacoes .btn-2{min-width:132px}
+.insights-hero .pill{align-self:start}
+
+@media(max-width:1040px){
+  .insights-resumo{grid-template-columns:1fr}
+  .insights-hero .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .insights-moedas{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+
+@media(max-width:720px){
+  .insights-hero .kpis{grid-template-columns:1fr}
+  .insights-moedas{grid-template-columns:1fr}
+  .insights-blocos{grid-template-columns:1fr}
+  .insights-exportacoes .btn,.insights-exportacoes .btn-2{min-width:0;flex:1}
+}
+
 @media(max-width:980px){
   .diario-hero-body{grid-template-columns:1fr}
   .diario-hero-side{grid-template-columns:1fr 1fr 1fr}

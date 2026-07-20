@@ -44,6 +44,7 @@ export const ABAS = {
   mes:    { n:'Contas do mês', c:'#0F6E5C' },
   painel: { n:'Painel',        c:'#2F4F9E' },
   ano:    { n:'Ano',           c:'#7A3E9D' },
+  insights: { n:'Insights',    c:'#4C6F67' },
   diario: { n:'Dia a dia',     c:'#D84315' },
   viagem: { n:'Viagem',        c:'#00838F' },
   fixos:  { n:'Fixos',         c:'#B98900' },
