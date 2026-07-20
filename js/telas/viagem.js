@@ -4,6 +4,7 @@
 
 import { CATD, PAGD, S, V, STATUS, cor, dia, esc, viagemAtual } from '../estado.js';
 import { M, Mc, MOEDAS, VE, VC } from '../moeda.js';
+import { viagemApi } from '../api.js';
 import { formGen } from '../ui.js';
 
 export function telaViagem(){

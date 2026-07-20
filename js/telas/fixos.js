@@ -3,6 +3,7 @@
 // ============================================================================
 
 import { valeNoMes, vencimentoNoMes } from '../propagacao.js';
+import { contasApi } from '../api.js';
 import { doMes } from './mes.js';
 import { render } from '../bus.js';
 import { MESES, S, V, cor, dia, esc, novoId } from '../estado.js';

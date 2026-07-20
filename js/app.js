@@ -12,7 +12,7 @@ import { propagar, limparAoApagar, vincularTodasFixas } from './propagacao.js';
 import { setRender } from './bus.js';
 import { resumoMes, diarioDoMes, somaValor, somaPendente, somaPago } from './calculos.js?v=20260719-3';
 import { importarBase, temBase } from './seed.js';
-import { abrirImport } from './importar.js';
+import { abrirImport } from './importar.js?v=20260720-1';
 import { fita } from './fita.js';
 import { iniciarRelogio } from './relogio.js';
 
@@ -20,13 +20,13 @@ import { doMes, telaMes }        from './telas/mes.js?v=20260719-1';
 import { telaPainel }            from './telas/painel.js';
 import { telaAno }               from './telas/ano.js';
 import { telaDiario, formDiario, formMetaDiario } from './telas/diario.js?v=20260719-6';
-import { telaViagem, formHosp, formGasto } from './telas/viagem.js';
+import { telaViagem, formHosp, formGasto } from './telas/viagem.js?v=20260720-1';
 import { formViagem } from './telas/viagem_form.js';
 import { formFixo } from './telas/fixo_form.js';
-import { telaFixos, gerarMes, gerarAno }   from './telas/fixos.js';
+import { telaFixos, gerarMes, gerarAno }   from './telas/fixos.js?v=20260720-1';
 import { telaDados }             from './telas/dados.js';
 import { telaDiagnostico, executarSincronizacao } from './telas/diagnostico.js';
-import { form }                  from './telas/form_conta.js';
+import { form }                  from './telas/form_conta.js?v=20260720-1';
 
 const $ = id => document.getElementById(id);
 const on = (id, ev, fn) => { const e = $(id); if (e) e[ev] = fn; };
