@@ -87,7 +87,7 @@ header{background:var(--card);border-bottom:1px solid var(--line);position:stick
 .aba i{font-style:normal;font-family:var(--mono);font-size:10px;margin-left:5px;opacity:.6}
 
 /* ---- cartões / tabelas ---- */
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);margin-bottom:14px;box-shadow:var(--shadow-soft)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);margin-bottom:14px;box-shadow:var(--shadow-soft);overflow:hidden}
 .card-hd{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap;min-height:46px}
 .card-hd h3{font-family:var(--disp);font-size:12px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--acc);line-height:1.15}
 .card-hd{border-bottom-color:var(--line)}
@@ -110,9 +110,9 @@ tr.lin:hover{background:color-mix(in srgb,var(--c) 7%,#fff)}
 .num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
 .tot td{border-top:1px solid var(--line);font-weight:600;background:#F2F6F5}
 
-.pill{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;white-space:nowrap;line-height:1.15}
+.pill{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;white-space:nowrap;line-height:1.15;box-shadow:0 1px 0 rgba(255,255,255,.45) inset}
 .pill-cat{background:var(--paper);color:var(--ink-2)}
-.st{font-family:var(--mono);font-size:11px;font-weight:600;padding:2px 8px;border-radius:6px;letter-spacing:.02em;line-height:1.2}
+.st{font-family:var(--mono);font-size:11px;font-weight:600;padding:2px 8px;border-radius:6px;letter-spacing:.02em;line-height:1.2;box-shadow:0 1px 0 rgba(255,255,255,.35) inset}
 .st-pago{background:var(--cofre-2);color:var(--cofre)}
 .st-pend{background:var(--paper);color:var(--ink-2);box-shadow:inset 0 0 0 1px var(--line)}
 .st-venc{background:var(--carimbo-2);color:var(--carimbo)}
@@ -120,14 +120,15 @@ tr.lin:hover{background:color-mix(in srgb,var(--c) 7%,#fff)}
 .acao:hover{background:var(--paper);color:var(--ink)}
 .acao.del:hover{background:var(--carimbo-2);color:var(--carimbo)}
 
-.btn{background:var(--ink);color:#fff;padding:7px 13px;border-radius:8px;font-size:13px;font-weight:600;min-height:34px;display:inline-flex;align-items:center;justify-content:center;line-height:1.1;transition:transform .12s,box-shadow .12s,background .12s}
-.btn:hover{background:#25404A}
+.btn{background:var(--ink);color:#fff;padding:7px 13px;border-radius:8px;font-size:13px;font-weight:600;min-height:34px;display:inline-flex;align-items:center;justify-content:center;line-height:1.1;transition:transform .12s,box-shadow .12s,background .12s,filter .12s;box-shadow:0 1px 0 rgba(255,255,255,.08) inset}
+.btn:hover{background:#25404A;filter:saturate(1.02)}
 .btn:active{transform:translateY(1px)}
-.btn-2{background:var(--card);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line);padding:6px 11px;border-radius:8px;font-size:12.5px;min-height:34px;display:inline-flex;align-items:center;justify-content:center;line-height:1.1;transition:transform .12s,box-shadow .12s,background .12s}
+.btn-2{background:var(--card);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line);padding:6px 11px;border-radius:8px;font-size:12.5px;min-height:34px;display:inline-flex;align-items:center;justify-content:center;line-height:1.1;transition:transform .12s,box-shadow .12s,background .12s,filter .12s}
 .btn-2:hover{background:var(--paper)}
 .btn-2:active{transform:translateY(1px)}
 .btn-cofre{background:var(--acc);color:#fff}
 .btn-cofre:hover{filter:brightness(.9)}
+.btn:focus-visible,.btn-2:focus-visible,.btn-cofre:focus-visible,.moedas button:focus-visible,.viagem-rail-moedas button:focus-visible,.viagem-grafico-moedas-botoes button:focus-visible,.aba:focus-visible{box-shadow:0 0 0 3px color-mix(in srgb,var(--azul) 18%,#fff)}
 .dir{margin-left:auto;display:flex;gap:7px;align-items:center;flex-wrap:wrap}
 
 /* ---- barras por categoria ---- */
@@ -174,13 +175,13 @@ tr.lin:hover{background:color-mix(in srgb,var(--c) 7%,#fff)}
 .eur{color:var(--azul)}
 .ver{font-family:var(--mono);font-size:9.5px;color:var(--ink-2);opacity:.6;letter-spacing:.04em;margin-left:8px}
 .moedas{display:flex;gap:2px;background:var(--paper);padding:2px;border-radius:8px;margin-left:10px}
-.moedas button{min-width:34px;height:26px;border-radius:6px;font-size:12.5px;font-weight:600;color:var(--ink-2);font-family:var(--mono)}
-.moedas button:hover{color:var(--ink)}
+.moedas button{min-width:34px;height:26px;border-radius:6px;font-size:12.5px;font-weight:600;color:var(--ink-2);font-family:var(--mono);transition:transform .12s,background .12s,color .12s,box-shadow .12s}
+.moedas button:hover{color:var(--ink);transform:translateY(-1px)}
 .moedas button[data-m="BRL"]{color:var(--cofre)}
 .moedas button[data-m="USD"]{color:var(--azul)}
 .moedas button[data-m="EUR"]{color:#7A3E9D}
 .moedas button[data-m="PYG"]{color:#D97706}
-.moedas button.on{background:var(--card);box-shadow:0 1px 2px rgba(22,38,44,.14);color:#fff}
+.moedas button.on{background:var(--card);box-shadow:0 1px 2px rgba(22,38,44,.14);color:#fff;transform:translateY(-1px)}
 .moedas button.on[data-m="BRL"]{background:var(--cofre)}
 .moedas button.on[data-m="USD"]{background:var(--azul)}
 .moedas button.on[data-m="EUR"]{background:#7A3E9D}
@@ -201,7 +202,7 @@ th{font-weight:600}
 .viagem-resumo-lista,
 .modal,
 .fita,
-.abas{scrollbar-color:#B4C5C7 #EAF0F1}
+.abas{scrollbar-color:#B4C5C7 #EAF0F1;scrollbar-width:thin}
 
 @supports selector(::-webkit-scrollbar){
   .dias::-webkit-scrollbar,
