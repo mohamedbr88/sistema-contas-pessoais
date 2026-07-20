@@ -3,10 +3,10 @@
 //  Só lê os dados já existentes e deriva indicadores novos sem alterar regra
 //  de negócio, schema ou comportamento de telas atuais.
 // ============================================================================
-import { S, V, A0, MESES, CATS, CATD, cor, esc, noMes, viagemAtual } from './estado.js?v=20260720-4';
-import { contasDoMes, diarioDoMes, resumoMes, somaEstimado, somaPago, somaValor, valorEmBRL } from './calculos.js?v=20260720-4';
-import { M, Mc, VE } from './moeda.js?v=20260720-4';
-import { baixar } from './ui.js?v=20260720-4';
+import { S, V, A0, MESES, CATS, CATD, cor, esc, noMes, viagemAtual } from './estado.js?v=20260720-6';
+import { contasDoMes, diarioDoMes, resumoMes, somaEstimado, somaPago, somaValor, valorEmBRL } from './calculos.js?v=20260720-6';
+import { M, Mc, VE } from './moeda.js?v=20260720-6';
+import { baixar } from './ui.js?v=20260720-6';
 
 const pad = n => String(n).padStart(2, '0');
 const keyMes = (ano, mes) => `${ano}-${pad(mes)}`;

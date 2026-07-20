@@ -4,7 +4,7 @@
 
 import { render } from './bus.js';
 import { contasApi } from './api.js';
-import { CATS, LOCS, PAGS, S, V, dia, esc, novoId } from './estado.js?v=20260720-4';
+import { CATS, LOCS, PAGS, S, V, dia, esc, novoId } from './estado.js?v=20260720-6';
 import { M } from './moeda.js';
 import { toast } from './ui.js';
 

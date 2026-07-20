@@ -10,6 +10,8 @@
 // ============================================================================
 
 export const VERSAO = 'v13-supabase';
+export const CACHE_VERSAO = '20260720-6';
+export const APP_STATE_KEY = `contas:state:${CACHE_VERSAO}`;
 
 export const INICIO = '2026-05-01';   // regra fixa: nada antes disso existe
 export const A0 = 2026;   // ano em que o histórico começa
@@ -144,4 +146,32 @@ export function podar() {
   S.tx     = S.tx.filter(t => t.data >= INICIO);
   S.diario = S.diario.filter(d => d.data >= INICIO);
   return antes - (S.tx.length + S.diario.length);
+}
+
+export function salvarEstadoTela(parcial = {}) {
+  if (typeof localStorage === 'undefined') return;
+  try {
+    const atual = {
+      aba: V.aba,
+      ano: V.ano,
+      mes: V.mes,
+      moeda: S.moeda,
+      viagemId: V.viagemId,
+      viagemDiaSel: V.viagemDiaSel,
+      diaSel: V.diaSel,
+      viagemMoedas: V.viagemMoedas,
+      ...parcial
+    };
+    localStorage.setItem(APP_STATE_KEY, JSON.stringify(atual));
+  } catch (e) {}
+}
+
+export function carregarEstadoTela() {
+  if (typeof localStorage === 'undefined') return null;
+  try {
+    const bruto = localStorage.getItem(APP_STATE_KEY);
+    return bruto ? JSON.parse(bruto) : null;
+  } catch (e) {
+    return null;
+  }
 }

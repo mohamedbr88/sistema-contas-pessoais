@@ -4,7 +4,7 @@
 //  em EUR). A conversão é só para exibir — assim o câmbio mudar não mexe no
 //  que você lançou.
 // ============================================================================
-import { S } from './estado.js?v=20260720-4';
+import { S } from './estado.js?v=20260720-6';
 
 export const MOEDAS = {
   BRL: { c:'BRL', n:'R$',  d:2 },

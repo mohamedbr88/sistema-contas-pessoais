@@ -2,32 +2,32 @@
 //  app.js — junta tudo: desenha a tela, liga os eventos, inicia a sessão.
 //  É o único arquivo carregado pelo index.html.
 // ============================================================================
-import { S, V, VERSAO, MESES, ABAS, A0, M0, podar, noMes, esc, viagemAtual } from './estado.js?v=20260720-4';
-import { MOEDAS, M, Mc } from './moeda.js?v=20260720-4';
-import { toast, baixar } from './ui.js?v=20260720-4';
+import { S, V, VERSAO, MESES, ABAS, A0, M0, podar, noMes, esc, viagemAtual, carregarEstadoTela, salvarEstadoTela, CACHE_VERSAO } from './estado.js?v=20260720-6';
+import { MOEDAS, M, Mc } from './moeda.js?v=20260720-6';
+import { toast, baixar } from './ui.js?v=20260720-6';
 import { sb } from './supabase.js';
-import { pedirLogin, sair, sessao } from './auth.js?v=20260720-4';
-import { carregarTudo, salvarPerfil, contasApi, fixosApi, apagarTudo, despesasApi } from './api.js?v=20260720-4';
-import { propagar, limparAoApagar, vincularTodasFixas } from './propagacao.js?v=20260720-4';
+import { pedirLogin, sair, sessao } from './auth.js?v=20260720-6';
+import { carregarTudo, salvarPerfil, contasApi, fixosApi, apagarTudo, despesasApi } from './api.js?v=20260720-6';
+import { propagar, limparAoApagar, vincularTodasFixas } from './propagacao.js?v=20260720-6';
 import { setRender } from './bus.js';
-import { resumoMes, diarioDoMes, somaValor, somaPendente, somaPago } from './calculos.js?v=20260720-4';
-import { importarBase, temBase } from './seed.js?v=20260720-4';
-import { abrirImport } from './importar.js?v=20260720-4';
-import { fita } from './fita.js?v=20260720-4';
-import { iniciarRelogio } from './relogio.js?v=20260720-4';
+import { resumoMes, diarioDoMes, somaValor, somaPendente, somaPago } from './calculos.js?v=20260720-6';
+import { importarBase, temBase } from './seed.js?v=20260720-6';
+import { abrirImport } from './importar.js?v=20260720-6';
+import { fita } from './fita.js?v=20260720-6';
+import { iniciarRelogio } from './relogio.js?v=20260720-6';
 
-import { doMes, telaMes }        from './telas/mes.js?v=20260720-4';
-import { telaPainel }            from './telas/painel.js?v=20260720-4';
-import { telaAno }               from './telas/ano.js?v=20260720-4';
-import { telaDiario, formDiario, formMetaDiario } from './telas/diario.js?v=20260720-4';
-import { telaViagem, formHosp, formGasto } from './telas/viagem.js?v=20260720-4';
-import { formViagem } from './telas/viagem_form.js?v=20260720-4';
-import { formFixo } from './telas/fixo_form.js?v=20260720-4';
-import { telaInsights, exportarInsightsCsv, exportarInsightsXls, imprimirInsights } from './telas/insights.js?v=20260720-5';
-import { telaFixos, gerarMes, gerarAno }   from './telas/fixos.js?v=20260720-4';
-import { telaDados }             from './telas/dados.js?v=20260720-4';
-import { telaDiagnostico, executarSincronizacao } from './telas/diagnostico.js?v=20260720-4';
-import { form }                  from './telas/form_conta.js?v=20260720-4';
+import { doMes, telaMes }        from './telas/mes.js?v=20260720-6';
+import { telaPainel }            from './telas/painel.js?v=20260720-6';
+import { telaAno }               from './telas/ano.js?v=20260720-6';
+import { telaDiario, formDiario, formMetaDiario } from './telas/diario.js?v=20260720-6';
+import { telaViagem, formHosp, formGasto } from './telas/viagem.js?v=20260720-6';
+import { formViagem } from './telas/viagem_form.js?v=20260720-6';
+import { formFixo } from './telas/fixo_form.js?v=20260720-6';
+import { telaInsights, exportarInsightsCsv, exportarInsightsXls, imprimirInsights } from './telas/insights.js?v=20260720-6';
+import { telaFixos, gerarMes, gerarAno }   from './telas/fixos.js?v=20260720-6';
+import { telaDados }             from './telas/dados.js?v=20260720-6';
+import { telaDiagnostico, executarSincronizacao } from './telas/diagnostico.js?v=20260720-6';
+import { form }                  from './telas/form_conta.js?v=20260720-6';
 
 const $ = id => document.getElementById(id);
 const on = (id, ev, fn) => { const e = $(id); if (e) e[ev] = fn; };
@@ -46,6 +46,23 @@ function alinharNoTopo(sempre = false) {
   window.scrollTo(0, 0);
   document.documentElement.scrollTop = 0;
   document.body.scrollTop = 0;
+}
+
+function restaurarEstadoInicial() {
+  const salvo = carregarEstadoTela();
+  if (!salvo) return;
+  if (salvo.aba && ABAS[salvo.aba]) V.aba = salvo.aba;
+  if (Number.isFinite(+salvo.ano)) V.ano = +salvo.ano;
+  if (Number.isFinite(+salvo.mes)) V.mes = +salvo.mes;
+  if (salvo.moeda && MOEDAS[salvo.moeda]) S.moeda = salvo.moeda;
+  if (salvo.viagemId !== undefined) V.viagemId = salvo.viagemId;
+  if (salvo.viagemDiaSel !== undefined) V.viagemDiaSel = salvo.viagemDiaSel;
+  if (salvo.diaSel !== undefined) V.diaSel = salvo.diaSel;
+  if (salvo.viagemMoedas) V.viagemMoedas = salvo.viagemMoedas;
+}
+
+function snapshotEstadoTela() {
+  salvarEstadoTela();
 }
 
 // ---------------------------------------------------------------------------
@@ -101,6 +118,7 @@ export function render() {
 
   if (!esconderFita) fita();
   else $('dias').innerHTML = '';
+  snapshotEstadoTela();
   liga();
 }
 setRender(render);
@@ -358,6 +376,7 @@ async function iniciar() {
   document.getElementById('login').hidden = true;
   document.getElementById('app').hidden = false;
   document.getElementById('carregando').hidden = false;
+  restaurarEstadoInicial();
   alinharNoTopo(true);
 
   const carregarComRetry = async () => {

@@ -1,8 +1,8 @@
 // ============================================================================
 //  Tela Insights: inteligência financeira, comparativos, projeções e exports.
 // ============================================================================
-import { esc, MESES, cor } from '../estado.js?v=20260720-4';
-import { M, Mc, VE } from '../moeda.js?v=20260720-4';
+import { esc, MESES, cor } from '../estado.js?v=20260720-6';
+import { M, Mc, VE } from '../moeda.js?v=20260720-6';
 import { exportarInsightsCsv, exportarInsightsXls, imprimirInsights, gerarDadosInsights } from '../inteligencia.js';
 
 function sparkline(vals, corLine = '#0F6E5C') {

@@ -2,8 +2,8 @@
 //  Tela "Ano": categoria x 12 meses.
 // ============================================================================
 
-import { pagoNoMes } from '../calculos.js?v=20260720-4';
-import { A0, CATS, MESES, S, V, cor, esc } from '../estado.js?v=20260720-4';
+import { pagoNoMes } from '../calculos.js?v=20260720-6';
+import { A0, CATS, MESES, S, V, cor, esc } from '../estado.js?v=20260720-6';
 import { M, Mc } from '../moeda.js';
 
 export function telaAno(){

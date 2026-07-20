@@ -13,7 +13,7 @@
 //    · pendente usa a estimativa; pago usa o valor pago
 //    · vencida = pendente com vencimento anterior a hoje
 // ============================================================================
-import { S, V, noMes, vencido } from './estado.js?v=20260720-4';
+import { S, V, noMes, vencido } from './estado.js?v=20260720-6';
 import { conv } from './moeda.js';
 
 // ---------------------------------------------------------------------------
