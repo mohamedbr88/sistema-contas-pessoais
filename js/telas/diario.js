@@ -101,37 +101,74 @@ function listaPills(itens, vazio) {
   return itens.map(item => `<span class="pill pill-cat">${esc(item)}</span>`).join('');
 }
 
-function pontosGrafico(acumulado, nd) {
-  const totais = [];
-  let parcial = 0;
-  const mapa = Object.fromEntries(acumulado.map(p => [+p.data.slice(8), p.total]));
-  for (let dia = 1; dia <= nd; dia++) {
-    if (Object.prototype.hasOwnProperty.call(mapa, dia)) parcial = mapa[dia];
-    totais.push({ dia, total: parcial });
-  }
-  const max = Math.max(...totais.map(p => p.total), 0);
+function divisorMediaDiaria(ano, mes, nd, itensDia) {
+  const hoje = new Date();
+  const chaveAtual = hoje.getFullYear() * 12 + (hoje.getMonth() + 1);
+  const chaveSel = ano * 12 + mes;
+  if (chaveSel < chaveAtual) return nd;
+  if (chaveSel === chaveAtual) return Math.min(hoje.getDate(), nd);
+  return itensDia.filter(item => item.qtd > 0).length;
+}
+
+function estruturaFluxoMes(itensDia, mediaDiaria, limiteDiario) {
   const mobile = typeof window !== 'undefined' && window.innerWidth <= 720;
-  const w = 700, h = mobile ? 176 : 150, padX = 48, padY = mobile ? 22 : 20;
+  const w = 700, h = mobile ? 210 : 180, padX = 42, padY = mobile ? 26 : 22;
   const usableW = w - padX * 2;
   const usableH = h - padY * 2;
-  const pts = totais.map((p, idx) => {
-    const x = padX + (idx / Math.max(1, totais.length - 1)) * usableW;
-    const y = padY + usableH - (max ? (p.total / max) * usableH : 0);
-    return `${x.toFixed(1)},${y.toFixed(1)}`;
-  }).join(' ');
+  const n = Math.max(1, itensDia.length);
+  const step = usableW / n;
+  const barW = Math.max(2.2, step * (mobile ? 0.72 : 0.68));
+  const maxValor = Math.max(
+    ...itensDia.map(item => item.total),
+    mediaDiaria || 0,
+    limiteDiario || 0,
+    0
+  );
+  const maxEscala = maxValor || 1;
+  const yPorValor = valor => padY + usableH - ((valor / maxEscala) * usableH);
   const ticksY = Array.from({ length: 4 }, (_, i) => {
     const ratio = i / 3;
-    const valor = max * (1 - ratio);
+    const valor = maxEscala * (1 - ratio);
     const y = padY + usableH * ratio;
     return { valor, y };
   });
-  const ticksX = totais.filter((_, idx) => idx === 0 || idx === totais.length - 1 || idx % Math.max(1, Math.ceil(totais.length / 6)) === 0)
-    .map(p => ({
-      dia: p.dia,
-      x: padX + ((p.dia - 1) / Math.max(1, totais.length - 1)) * usableW
+  const ticksX = itensDia.filter((_, idx) => idx === 0 || idx === itensDia.length - 1 || idx % Math.max(1, Math.ceil(itensDia.length / 6)) === 0)
+    .map((item, idx) => ({
+      dia: item.dia,
+      x: padX + (idx * step) + (step / 2)
     }));
-  const diasComLancamento = new Set(acumulado.map(p => +p.data.slice(8)));
-  return { totais, pts, max, w, h, padX, padY, ticksY, ticksX, diasComLancamento };
+  const bars = itensDia.map((item, idx) => {
+    const x = padX + (idx * step) + ((step - barW) / 2);
+    const hBar = item.total ? Math.max((item.total / maxEscala) * usableH, 2.5) : 0;
+    const y = padY + usableH - hBar;
+    return { ...item, x, y, w: barW, h: hBar };
+  });
+  return {
+    w, h, padX, padY, usableH, ticksY, ticksX, maxEscala,
+    yMedia: yPorValor(mediaDiaria || 0),
+    yLimite: limiteDiario == null ? null : yPorValor(limiteDiario),
+    bars
+  };
+}
+
+function maiorSequenciaDiasComGasto(itensDia) {
+  let atual = 0;
+  let maior = 0;
+  itensDia.forEach(item => {
+    if (item.qtd > 0) {
+      atual += 1;
+      maior = Math.max(maior, atual);
+      return;
+    }
+    atual = 0;
+  });
+  return maior;
+}
+
+function diaMaisEconomicoComGasto(itensDia) {
+  return itensDia
+    .filter(item => item.qtd > 0)
+    .sort((a, b) => a.total - b.total || a.dia - b.dia)[0] || null;
 }
 
 function resumoOndeFoiDinheiro(dsMes, totalMes) {
@@ -230,7 +267,6 @@ export function telaDiario(){
   const metaMes = metasApi.doMes(V.ano, V.mes);
   const metaBRL = metaMes ? valorEmBRL(metaMes.valor, metaMes.moeda) : 0;
   const saldoMeta = metaBRL - totalMes;
-  const grafico = pontosGrafico(resumoMes.acumulado, nd);
   const maiorDiaRotulo = diaMaisGastou ? formatDateIso(diaMaisGastou.data) : '—';
   const metaStatus = !metaMes ? 'Defina uma meta mensal' : saldoMeta >= 0 ? `${Mc(saldoMeta)} restantes` : `${Mc(Math.abs(saldoMeta))} acima da meta`;
   const menorDiaRotulo = diaMenosGastou ? formatDateIso(diaMenosGastou.data) : 'Sem dados';
@@ -244,6 +280,16 @@ export function telaDiario(){
   const resumoPg = resumoPagamento(pagamentoMaisUsado);
   const ondeFoi = resumoOndeFoiDinheiro(dsMes, totalMes);
   const gastoPorDia = resumoGastoPorDiaMes(dsMes, V.ano, V.mes);
+  const divisorMedia = divisorMediaDiaria(V.ano, V.mes, nd, gastoPorDia.itens);
+  const mediaDiariaFluxo = divisorMedia > 0 ? totalMes / divisorMedia : 0;
+  const limiteDiarioIdeal = metaMes ? (metaBRL / nd) : null;
+  const fluxo = estruturaFluxoMes(gastoPorDia.itens, mediaDiariaFluxo, limiteDiarioIdeal);
+  const nomeMesLower = MESES[V.mes-1].toLowerCase();
+  const maiorDiaFluxo = gastoPorDia.diaMaisGasto;
+  const maiorDiaResumo = maiorDiaFluxo ? `${maiorDiaFluxo.dia} de ${nomeMesLower} — ${Mc(maiorDiaFluxo.total)}` : 'Sem dados';
+  const maiorSequenciaFluxo = maiorSequenciaDiasComGasto(gastoPorDia.itens);
+  const diaMaisEconomicoFluxo = diaMaisEconomicoComGasto(gastoPorDia.itens);
+  const diaMaisEconomicoResumo = diaMaisEconomicoFluxo ? `${diaMaisEconomicoFluxo.dia} de ${nomeMesLower} — ${Mc(diaMaisEconomicoFluxo.total)}` : 'Sem dados';
 
   return `<section class="diario-dashboard">
     <div class="card diario-hero"><div class="card-hd"><h3>Gasto do mês</h3>
@@ -288,28 +334,37 @@ export function telaDiario(){
       </div>
     </div>
 
-    <div class="card"><div class="card-hd"><h3>Evolução acumulada de ${MESES[V.mes-1]}</h3></div>
+    <div class="card"><div class="card-hd"><h3>FLUXO DO MÊS — ${MESES[V.mes-1].toUpperCase()}</h3></div>
       <div class="grafico-cabecalho">
-        <p>Mostra quanto o gasto do mês foi crescendo dia após dia. Os pontos destacados marcam dias em que houve lançamento.</p>
-        <div class="grafico-legend-inline"><span><i></i>Linha acumulada</span><span><i class="dot"></i>Dia com lançamento</span></div>
+        <p>Compare seus gastos diários com a média do mês e o limite diário planejado.</p>
+        <div class="grafico-legend-inline"><span><i class="bar"></i>Gasto do dia</span><span><i class="avg"></i>Média diária</span><span><i class="limit"></i>Limite diário ideal</span></div>
       </div>
       <div class="grafico-diario">
-        <svg class="diario-evolucao" viewBox="0 0 ${grafico.w} ${grafico.h}" role="img" aria-label="Gastos acumulados do mês">
-          <rect x="0" y="0" width="${grafico.w}" height="${grafico.h}" rx="10" fill="#F7FAF9"></rect>
-          ${grafico.ticksY.map(t => `<g><line x1="${grafico.padX}" y1="${t.y.toFixed(1)}" x2="${grafico.w - grafico.padX}" y2="${t.y.toFixed(1)}" stroke="#D7E2E0" stroke-dasharray="4 4"></line><text x="10" y="${(t.y + 4).toFixed(1)}" font-size="11" fill="#5C7079">${esc(Mc(t.valor))}</text></g>`).join('')}
-          <polyline fill="none" stroke="#D84315" stroke-width="3.5" points="${grafico.pts}"></polyline>
-          ${grafico.ticksX.map(t => `<text x="${t.x.toFixed(1)}" y="${grafico.h - 6}" text-anchor="middle" font-size="11" fill="#5C7079">${t.dia}</text>`).join('')}
-          ${grafico.totais.map(p => {
-            const i = p.dia - 1;
-            const x = grafico.padX + (i / Math.max(1, grafico.totais.length - 1)) * (grafico.w - grafico.padX * 2);
-            const y = grafico.padY + (grafico.h - grafico.padY * 2) - (grafico.max ? (p.total / grafico.max) * (grafico.h - grafico.padY * 2) : 0);
-            const destaque = grafico.diasComLancamento.has(p.dia);
-            return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${destaque ? 4.5 : 2.5}" fill="${destaque ? '#0F6E5C' : '#D84315'}"><title>Dia ${p.dia}: ${Mc(p.total)} acumulados${destaque ? ' · houve lançamento' : ''}</title></circle>`;
+        <svg class="diario-evolucao" viewBox="0 0 ${fluxo.w} ${fluxo.h}" role="img" aria-label="Fluxo diário de gastos do mês">
+          <rect x="0" y="0" width="${fluxo.w}" height="${fluxo.h}" rx="10" fill="#F7FAF9"></rect>
+          ${fluxo.ticksY.map(t => `<g><line x1="${fluxo.padX}" y1="${t.y.toFixed(1)}" x2="${fluxo.w - fluxo.padX}" y2="${t.y.toFixed(1)}" stroke="#D7E2E0" stroke-dasharray="4 4"></line><text x="10" y="${(t.y + 4).toFixed(1)}" font-size="11" fill="#5C7079">${esc(Mc(t.valor))}</text></g>`).join('')}
+          ${fluxo.bars.map(item => {
+            const destaque = maiorDiaFluxo && maiorDiaFluxo.dia === item.dia;
+            const valorLabel = Mc(item.total);
+            const pctMes = totalMes > 0 ? Math.round((item.total / totalMes) * 100) : 0;
+            const dataCompleta = `${item.dia} de ${nomeMesLower}`;
+            const tip = `${dataCompleta}\n${valorLabel}\n${item.qtd} lançamentos\n${pctMes}% do gasto do mês`;
+            const tipTouch = `${dataCompleta} — ${valorLabel} — ${item.qtd} lançamentos — ${pctMes}% do gasto do mês`;
+            const xCentro = item.x + (item.w / 2);
+            return `<g class="fluxo-bar-group${destaque ? ' is-peak' : ''}" data-fluxo-tip="${esc(tipTouch)}" style="cursor:pointer">
+              <line class="fluxo-guide" x1="${xCentro.toFixed(1)}" y1="${fluxo.padY.toFixed(1)}" x2="${xCentro.toFixed(1)}" y2="${(fluxo.padY + fluxo.usableH).toFixed(1)}"></line>
+              <rect class="fluxo-bar" x="${item.x.toFixed(1)}" y="${item.y.toFixed(1)}" width="${item.w.toFixed(1)}" height="${item.h.toFixed(1)}" rx="3.8" fill="${destaque ? '#116A66' : '#D84315'}" opacity="${item.total ? (destaque ? '0.98' : '0.84') : '0.24'}"></rect>
+              <title>${tip}</title>
+            </g>`;
           }).join('')}
-          <text x="${grafico.w / 2}" y="${grafico.h - 20}" text-anchor="middle" font-size="11" fill="#5C7079">Dias do mês</text>
-          <text x="14" y="16" font-size="11" fill="#5C7079">Valor acumulado</text>
+          <line x1="${fluxo.padX}" y1="${fluxo.yMedia.toFixed(1)}" x2="${fluxo.w - fluxo.padX}" y2="${fluxo.yMedia.toFixed(1)}" stroke="#0D5C56" stroke-width="2.6" stroke-dasharray="7 4"></line>
+          ${fluxo.yLimite == null ? '' : `<line x1="${fluxo.padX}" y1="${fluxo.yLimite.toFixed(1)}" x2="${fluxo.w - fluxo.padX}" y2="${fluxo.yLimite.toFixed(1)}" stroke="#2F4F9E" stroke-width="2.4" stroke-dasharray="3 6"></line>`}
+          ${fluxo.ticksX.map(t => `<text x="${t.x.toFixed(1)}" y="${fluxo.h - 6}" text-anchor="middle" font-size="11" fill="#5C7079">${t.dia}</text>`).join('')}
+          <text x="14" y="16" font-size="11.5" font-weight="600" fill="#3E525B">Valor por dia</text>
+          <text x="${fluxo.w / 2}" y="${fluxo.h - 20}" text-anchor="middle" font-size="11" fill="#5C7079">Dias do mês</text>
         </svg>
-        <div class="grafico-legenda"><span>Começa em <b>${Mc(0)}</b></span><span>Fecha em <b>${Mc(totalMes)}</b></span><span>Maior acumulado <b>${Mc(grafico.max)}</b></span></div>
+        ${limiteDiarioIdeal == null ? `<div class="fluxo-alerta">Defina um orçamento mensal para acompanhar seu limite diário</div>` : ''}
+          <div class="grafico-legenda fluxo-resumo"><span>Total gasto: <b>${Mc(totalMes)}</b></span><span>Média diária: <b>${Mc(mediaDiariaFluxo)}</b></span><span>Maior dia: <b>${maiorDiaResumo}</b></span><span>Dias com gasto: <b>${diasComGasto || 0}</b></span><span>Maior sequência: <b>${maiorSequenciaFluxo || 0} dia(s)</b></span><span>Dia mais econômico: <b>${diaMaisEconomicoResumo}</b></span></div>
       </div></div>
 
     <div class="card"><div class="card-hd"><h3>Resumo do mês</h3></div>

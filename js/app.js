@@ -222,6 +222,22 @@ function liga() {
     V.diaSel = V.diaSel === d ? null : d;
     render();
   });
+  document.querySelectorAll('[data-fluxo-tip]').forEach(el => {
+    const ativar = () => {
+      document.querySelectorAll('.fluxo-bar-group.is-active').forEach(x => x.classList.remove('is-active'));
+      el.classList.add('is-active');
+    };
+    el.onpointerenter = ativar;
+    el.onpointerdown = () => {
+      ativar();
+      const t = el.dataset.fluxoTip;
+      if (t) toast(t);
+    };
+    el.onpointerleave = () => {
+      if (el.matches(':hover')) return;
+      el.classList.remove('is-active');
+    };
+  });
 
   // viagem
   on('addH', 'onclick', () => formHosp(null));

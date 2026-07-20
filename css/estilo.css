@@ -253,9 +253,10 @@ tr.lin:hover{background:color-mix(in srgb,var(--c) 7%,#fff)}
 .meta-linha .pill-cat{font-size:10px}
 .grafico-diario{padding:14px}
 .grafico-diario svg{display:block;width:100%;height:auto}
-.grafico-diario svg.diario-evolucao{max-height:176px}
-.grafico-legenda{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:10px;font-size:11px;color:var(--ink-2)}
-.grafico-legenda b{font-family:var(--mono);font-size:12px;color:var(--ink)}
+.grafico-diario svg.diario-evolucao{max-height:212px}
+.grafico-diario svg.diario-evolucao text{paint-order:stroke;stroke:#F7FAF9;stroke-width:1.4px}
+.grafico-legenda{display:flex;justify-content:space-between;gap:12px;row-gap:8px;flex-wrap:wrap;margin-top:12px;font-size:11px;color:var(--ink-2)}
+.grafico-legenda b{font-family:var(--mono);font-size:12.5px;color:var(--ink)}
 .diario-dashboard{display:grid;gap:14px}
 .diario-hero{border-color:#D9E7E3;box-shadow:0 12px 28px rgba(15,110,92,.08)}
 .diario-hero .card-hd h3{color:var(--cofre)}
@@ -278,14 +279,28 @@ tr.lin:hover{background:color-mix(in srgb,var(--c) 7%,#fff)}
 .diario-dia-card .vazio{padding:30px 18px;text-align:left}
 .diario-dia-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--line)}
 .diario-vazio-dia p{margin-top:8px}
-.grafico-cabecalho{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;padding:14px 14px 0}
+.grafico-cabecalho{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap;padding:14px 14px 0}
 .grafico-cabecalho p{max-width:620px;font-size:12.5px;color:var(--ink-2)}
-.grafico-legend-inline{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--ink-2)}
+.grafico-legend-inline{display:flex;gap:14px;row-gap:7px;flex-wrap:wrap;font-size:11px;color:var(--ink-2)}
 .grafico-legend-inline span{display:flex;align-items:center;gap:6px}
 .grafico-legend-inline i{display:inline-block;width:22px;height:3px;border-radius:99px;background:#D84315}
 .grafico-legend-inline i.dot{width:8px;height:8px;border-radius:50%;background:#0F6E5C}
+.grafico-legend-inline i.bar{width:12px;height:8px;border-radius:3px;background:#D84315;opacity:.84}
+.grafico-legend-inline i.avg{background:#0F6E5C;border-radius:0;opacity:.9}
+.grafico-legend-inline i.limit{background:#2F4F9E;border-radius:0;opacity:.9}
 .diario-resumo-mensal .kpi{min-height:112px}
 .diario-graficos-mes{align-items:start}
+.fluxo-alerta{margin-top:8px;font-size:11px;color:var(--ink-2)}
+.fluxo-resumo b{font-size:11.5px}
+.fluxo-bar-group .fluxo-guide{stroke:#8EA3AA;stroke-width:1;stroke-dasharray:2 4;opacity:0;transition:opacity .16s ease}
+.fluxo-bar-group .fluxo-bar{transition:filter .16s ease,opacity .16s ease;transform-box:fill-box;transform-origin:50% 100%;animation:fluxoBarGrow .6s cubic-bezier(.25,.9,.3,1) both}
+.fluxo-bar-group:hover .fluxo-guide,.fluxo-bar-group.is-active .fluxo-guide{opacity:.65}
+.fluxo-bar-group:hover .fluxo-bar,.fluxo-bar-group.is-active .fluxo-bar{filter:brightness(.78)}
+.fluxo-bar-group.is-peak .fluxo-guide{stroke:#6E8B97}
+@keyframes fluxoBarGrow{
+  from{transform:scaleY(.03)}
+  to{transform:scaleY(1)}
+}
 .diario-categorias-mes{padding:8px 0 12px}
 .diario-barra-cat .lab{display:grid;gap:1px}
 .diario-barra-cat .lab b{font-size:12.5px;font-weight:600;color:var(--ink)}
@@ -326,11 +341,12 @@ tr.lin:hover{background:color-mix(in srgb,var(--c) 7%,#fff)}
   .diario-calendario .dia{padding:10px 4px 8px}
   .diario-calendario .badge{top:4px;right:4px;padding:2px 5px}
   .diario-dia-total{font-size:9px;min-height:20px}
-  .grafico-legenda{font-size:10px}
+  .grafico-legenda{font-size:10px;gap:10px}
   .grafico-cabecalho p{font-size:12px}
-  .grafico-diario svg.diario-evolucao{max-height:168px}
+  .grafico-diario svg.diario-evolucao{max-height:196px}
   .diario-gasto-dia-bars{height:122px}
   .diario-gasto-dia-meta{font-size:9px}
   .diario-gasto-dia-labels .diario-dia-col-label{font-size:8px}
+  .grafico-legend-inline{gap:10px}
   .aba{padding:8px 10px;font-size:12px}
 }
