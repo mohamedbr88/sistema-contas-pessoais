@@ -1,7 +1,7 @@
 // ============================================================================
 //  Pedaços de interface reaproveitados: aviso, formulário genérico, download.
 // ============================================================================
-import { esc } from './estado.js';
+import { esc } from './estado.js?v=20260720-4';
 import { render } from './bus.js';
 
 export function toast(msg){

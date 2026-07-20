@@ -4,13 +4,13 @@
 //  em EUR). A conversão é só para exibir — assim o câmbio mudar não mexe no
 //  que você lançou.
 // ============================================================================
-import { S } from './estado.js';
+import { S } from './estado.js?v=20260720-4';
 
 export const MOEDAS = {
   BRL: { c:'BRL', n:'R$',  d:2 },
   USD: { c:'USD', n:'US$', d:2 },
   EUR: { c:'EUR', n:'€',   d:2 },
-  PYG: { c:'PYG', n:'₲',   d:0 }
+  PYG: { c:'PYG', n:'₲',   d:2 }
 };
 
 /** quanto vale 1 unidade da moeda m, em BRL */

@@ -6,7 +6,7 @@ import { valeNoMes, vencimentoNoMes } from '../propagacao.js';
 import { contasApi } from '../api.js';
 import { doMes } from './mes.js';
 import { render } from '../bus.js';
-import { MESES, S, V, cor, dia, esc, novoId } from '../estado.js';
+import { MESES, S, V, cor, dia, esc, novoId } from '../estado.js?v=20260720-4';
 import { M, VE } from '../moeda.js';
 import { toast } from '../ui.js';
 

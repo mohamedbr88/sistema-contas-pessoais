@@ -5,7 +5,7 @@
 //  componente novo. A viagem criada aqui abre no MESMO painel da Espanha,
 //  vazia, com os mesmos botões.
 // ============================================================================
-import { S, V, STATUS, esc } from '../estado.js';
+import { S, V, STATUS, esc } from '../estado.js?v=20260720-4';
 import { MOEDAS } from '../moeda.js';
 import { formGen, toast } from '../ui.js';
 import { viagemApi, statusPelasDatas } from '../api.js';

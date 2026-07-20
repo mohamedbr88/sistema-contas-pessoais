@@ -81,6 +81,8 @@ export const V = {
   aba: 'mes',
   diaSel: null,
   viagemId: null,          // qual viagem está aberta na aba Viagem
+  viagemDiaSel: null,      // dia selecionado no calendário da viagem
+  viagemMoedas: 'atual',    // visualização de moedas na aba Viagem
   filtro: { q:'', cat:'', loc:'', pg:'', st:'' },
   ord: { col:'data', dir:1 }
 };

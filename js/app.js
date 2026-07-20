@@ -2,31 +2,31 @@
 //  app.js — junta tudo: desenha a tela, liga os eventos, inicia a sessão.
 //  É o único arquivo carregado pelo index.html.
 // ============================================================================
-import { S, V, VERSAO, MESES, ABAS, A0, M0, podar, noMes, esc, viagemAtual } from './estado.js';
-import { MOEDAS, M, Mc } from './moeda.js';
-import { toast, baixar } from './ui.js';
+import { S, V, VERSAO, MESES, ABAS, A0, M0, podar, noMes, esc, viagemAtual } from './estado.js?v=20260720-4';
+import { MOEDAS, M, Mc } from './moeda.js?v=20260720-4';
+import { toast, baixar } from './ui.js?v=20260720-4';
 import { sb } from './supabase.js';
-import { pedirLogin, sair, sessao } from './auth.js?v=20260719-3';
-import { carregarTudo, salvarPerfil, contasApi, fixosApi, apagarTudo, despesasApi } from './api.js?v=20260719-4';
-import { propagar, limparAoApagar, vincularTodasFixas } from './propagacao.js';
+import { pedirLogin, sair, sessao } from './auth.js?v=20260720-4';
+import { carregarTudo, salvarPerfil, contasApi, fixosApi, apagarTudo, despesasApi } from './api.js?v=20260720-4';
+import { propagar, limparAoApagar, vincularTodasFixas } from './propagacao.js?v=20260720-4';
 import { setRender } from './bus.js';
-import { resumoMes, diarioDoMes, somaValor, somaPendente, somaPago } from './calculos.js?v=20260719-3';
-import { importarBase, temBase } from './seed.js';
-import { abrirImport } from './importar.js?v=20260720-1';
-import { fita } from './fita.js';
-import { iniciarRelogio } from './relogio.js';
+import { resumoMes, diarioDoMes, somaValor, somaPendente, somaPago } from './calculos.js?v=20260720-4';
+import { importarBase, temBase } from './seed.js?v=20260720-4';
+import { abrirImport } from './importar.js?v=20260720-4';
+import { fita } from './fita.js?v=20260720-4';
+import { iniciarRelogio } from './relogio.js?v=20260720-4';
 
-import { doMes, telaMes }        from './telas/mes.js?v=20260719-1';
-import { telaPainel }            from './telas/painel.js';
-import { telaAno }               from './telas/ano.js';
-import { telaDiario, formDiario, formMetaDiario } from './telas/diario.js?v=20260719-6';
-import { telaViagem, formHosp, formGasto } from './telas/viagem.js?v=20260720-1';
-import { formViagem } from './telas/viagem_form.js';
-import { formFixo } from './telas/fixo_form.js';
-import { telaFixos, gerarMes, gerarAno }   from './telas/fixos.js?v=20260720-1';
-import { telaDados }             from './telas/dados.js';
-import { telaDiagnostico, executarSincronizacao } from './telas/diagnostico.js';
-import { form }                  from './telas/form_conta.js?v=20260720-1';
+import { doMes, telaMes }        from './telas/mes.js?v=20260720-4';
+import { telaPainel }            from './telas/painel.js?v=20260720-4';
+import { telaAno }               from './telas/ano.js?v=20260720-4';
+import { telaDiario, formDiario, formMetaDiario } from './telas/diario.js?v=20260720-4';
+import { telaViagem, formHosp, formGasto } from './telas/viagem.js?v=20260720-4';
+import { formViagem } from './telas/viagem_form.js?v=20260720-4';
+import { formFixo } from './telas/fixo_form.js?v=20260720-4';
+import { telaFixos, gerarMes, gerarAno }   from './telas/fixos.js?v=20260720-4';
+import { telaDados }             from './telas/dados.js?v=20260720-4';
+import { telaDiagnostico, executarSincronizacao } from './telas/diagnostico.js?v=20260720-4';
+import { form }                  from './telas/form_conta.js?v=20260720-4';
 
 const $ = id => document.getElementById(id);
 const on = (id, ev, fn) => { const e = $(id); if (e) e[ev] = fn; };
@@ -246,6 +246,15 @@ function liga() {
     b.onclick = () => formHosp(viagemAtual()?.hosp.find(x => x.id === b.dataset.eh)));
   document.querySelectorAll('[data-eg]').forEach(b =>
     b.onclick = () => formGasto(b.dataset.eg));
+
+  const viagemMostrarTodas = document.getElementById('viagemMostrarTodas');
+  if (viagemMostrarTodas) {
+    viagemMostrarTodas.onchange = () => { V.viagemMoedas = viagemMostrarTodas.checked ? 'todas' : 'atual'; render(); };
+  }
+
+  document.querySelectorAll('[data-vdia]').forEach(b => {
+    b.onclick = () => { V.viagemDiaSel = b.dataset.vdia; render(); };
+  });
 
   // trocar de viagem, criar e editar
   on('selViagem', 'onchange', e => { V.viagemId = e.target.value; render(); });

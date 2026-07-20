@@ -3,7 +3,7 @@
 // ============================================================================
 
 import { render } from './bus.js';
-import { S, V, dia, hojeISO, val, vencido } from './estado.js';
+import { S, V, dia, hojeISO, val, vencido } from './estado.js?v=20260720-4';
 import { M } from './moeda.js';
 
 export function fita(){

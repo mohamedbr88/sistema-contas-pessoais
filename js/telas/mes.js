@@ -2,8 +2,8 @@
 //  Tela "Contas do mês": lista, filtros, ordenação por coluna.
 // ============================================================================
 
-import { contasDoMes, somaEstimado, somaPago } from '../calculos.js?v=20260719-3';
-import { CATS, LOCS, MESES, PAGS, S, V, cor, dia, esc, noMes, vencido } from '../estado.js';
+import { contasDoMes, somaEstimado, somaPago } from '../calculos.js?v=20260720-4';
+import { CATS, LOCS, MESES, PAGS, S, V, cor, dia, esc, noMes, vencido } from '../estado.js?v=20260720-4';
 import { M } from '../moeda.js';
 
 // mantido como apelido: meia dúzia de telas já importam doMes daqui

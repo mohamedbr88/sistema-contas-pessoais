@@ -5,7 +5,7 @@
 import { MOEDAS } from '../moeda.js';
 import { contasApi, fixosApi } from '../api.js';
 import { render } from '../bus.js';
-import { CATS, LOCS, PAGS, S, V, dia, esc, novoId } from '../estado.js';
+import { CATS, LOCS, PAGS, S, V, dia, esc, novoId } from '../estado.js?v=20260720-4';
 import { toast } from '../ui.js';
 
 const rotuloMoeda = m => `${MOEDAS[m].n}  ${m}`;
