@@ -105,7 +105,20 @@ function valorCalendarioCompacto(totalBRL) {
   const moedaTela = S.moeda || 'BRL';
   const info = MOEDAS[moedaTela] || MOEDAS.BRL;
   const convertido = conv(totalBRL || 0, 'BRL', moedaTela);
-  if (Math.abs(convertido) < 1000) return M(totalBRL, 'BRL');
+  if (Math.abs(convertido) < 1000) {
+    const arredondado = Math.round(convertido);
+    try {
+      return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: info.c,
+        currencyDisplay: 'narrowSymbol',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      }).format(arredondado);
+    } catch (e) {
+      return M(totalBRL, 'BRL').replace(/([.,]\d{2})$/, '');
+    }
+  }
   try {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -389,10 +402,11 @@ export function telaDiario(){
           const badge = itens.length ? `<span class="badge">${itens.length}</span>` : '';
           const valorCompacto = itens.length ? valorCalendarioCompacto(totalDia) : '—';
           const valorCompleto = itens.length ? M(totalDia, 'BRL') : 'Nenhum lançamento neste dia.';
+          const esconderValor = !itens.length || (window.innerWidth <= 360 && valorCompacto.length > 9);
           return `<button class="dia${sel}${pico}${itens.length?' has':' no'}" data-dia="${d}" aria-pressed="${diaSel===d}" title="${itens.length ? `${itens.length} lançamento(s) · ${valorCompleto}` : valorCompleto}">
             <span class="n">${d}</span>
             ${badge}
-            <span class="diario-dia-total">${valorCompacto}</span></button>`;
+            <span class="diario-dia-total${esconderValor ? ' is-hidden' : ''}">${valorCompacto}</span></button>`;
         }).join('')}</div></div></div>
 
       <div class="card diario-dia-card"><div class="card-hd"><h3>${diaSel ? `Resumo de ${formatDate(V.ano, V.mes, diaSel)}` : 'Resumo do dia selecionado'}</h3>

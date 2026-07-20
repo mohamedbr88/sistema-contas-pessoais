@@ -57,16 +57,17 @@ header{background:var(--card);border-bottom:1px solid var(--line);position:stick
 .dia.hoje{position:relative}
 .dia.hoje:after{content:"";position:absolute;left:50%;bottom:-1px;width:5px;height:5px;border-radius:50%;background:var(--azul);transform:translateX(-50%)}
 
-.diario-calendario-wrap{padding:10px 12px 12px;overflow-x:visible}
-.diario-calendario{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
-.diario-calendario .dia{min-width:0;min-height:90px;display:grid;grid-template-rows:auto 1fr auto;align-items:start;justify-items:center;padding:9px 7px 8px;position:relative;border:1px solid #DCE6E7;border-radius:8px;background:#F6FAF9;transition:background .12s,border-color .12s,box-shadow .12s}
+.diario-calendario-wrap{padding:10px 12px 12px;overflow-x:auto}
+.diario-calendario{display:grid;grid-template-columns:repeat(7,minmax(94px,1fr));gap:8px;min-width:100%}
+.diario-calendario .dia{min-width:0;min-height:96px;display:grid;grid-template-rows:auto auto 1fr;align-items:start;justify-items:center;padding:10px 8px 9px;position:relative;border:1px solid #DCE6E7;border-radius:10px;background:#F7FAFA;transition:background .12s,border-color .12s,box-shadow .12s}
 .diario-calendario .dia:hover{background:#EEF6F4;border-color:#C8D7D8}
-.diario-calendario .dia.no{color:var(--ink-2);background:#F8FBFB}
+.diario-calendario .dia.no{color:var(--ink-2);background:#F9FBFB}
 .diario-calendario .dia.selected{background:#E6F2EF;border-color:var(--cofre);box-shadow:0 0 0 1px color-mix(in srgb,var(--cofre) 38%,#fff)}
 .diario-calendario .dia.is-max{border-color:#B7C9E8;box-shadow:inset 0 0 0 1px #D5E1F3}
 .diario-calendario .dia .n{align-self:start;justify-self:start;font-size:11px;line-height:1.1;color:var(--ink-2);font-weight:600}
-.diario-calendario .badge{position:absolute;top:6px;right:6px;min-width:20px;text-align:center;background:var(--cofre);color:#fff;border-radius:999px;font-size:10px;line-height:1;padding:3px 6px;font-family:var(--mono)}
-.diario-dia-total{align-self:end;font-family:var(--mono);font-size:10.5px;color:var(--ink);line-height:1.2;min-height:24px;width:100%;display:flex;align-items:center;justify-content:center;text-align:center;padding:0 2px;white-space:normal;overflow-wrap:anywhere;word-break:break-word}
+.diario-calendario .badge{position:absolute;top:7px;right:7px;min-width:20px;text-align:center;background:var(--cofre);color:#fff;border-radius:999px;font-size:10px;line-height:1;padding:3px 6px;font-family:var(--mono);box-shadow:0 1px 2px rgba(22,38,44,.08)}
+.diario-dia-total{align-self:end;font-family:var(--mono);font-size:10px;color:var(--ink);line-height:1.15;min-height:18px;width:100%;display:block;text-align:center;padding:0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.diario-dia-total.is-hidden{display:none}
 .diario-calendario .dia.no .diario-dia-total{color:var(--ink-2)}
 
 /* ---- abas ---- */
@@ -355,10 +356,10 @@ tr.lin:hover{background:color-mix(in srgb,var(--c) 7%,#fff)}
   .diario-resumo-grid,.diario-resumo-mensal{grid-template-columns:1fr}
   .mes-resumo-kpis{grid-template-columns:1fr}
   .diario-calendario-wrap{overflow-x:auto;padding:10px 10px 12px}
-  .diario-calendario{grid-template-columns:repeat(7,minmax(82px,82px));gap:6px;min-width:max-content}
-  .diario-calendario .dia{min-height:84px;padding:8px 6px 8px}
+  .diario-calendario{grid-template-columns:repeat(7,minmax(92px,1fr));gap:6px;min-width:646px}
+  .diario-calendario .dia{min-height:88px;padding:8px 6px 8px}
   .diario-calendario .badge{top:5px;right:5px;padding:2px 5px}
-  .diario-dia-total{font-size:10px;min-height:22px}
+  .diario-dia-total{font-size:9.5px;min-height:16px}
   .grafico-legenda{font-size:10px;gap:10px}
   .grafico-cabecalho p{font-size:12px}
   .grafico-diario svg.diario-evolucao{max-height:196px}
@@ -372,7 +373,11 @@ tr.lin:hover{background:color-mix(in srgb,var(--c) 7%,#fff)}
 }
 @media(max-width:1024px) and (min-width:721px){
   .diario-calendario{gap:6px}
-  .diario-calendario .dia{min-height:86px;padding:8px 6px}
+  .diario-calendario .dia{min-height:92px;padding:9px 7px}
   .diario-calendario .badge{padding:2px 5px;font-size:9.5px}
-  .diario-dia-total{font-size:10px}
+  .diario-dia-total{font-size:9.5px}
+}
+
+@media(max-width:460px){
+  .diario-dia-total.is-hidden{display:none}
 }
