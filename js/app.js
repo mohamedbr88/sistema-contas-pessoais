@@ -78,6 +78,9 @@ export function render() {
   $('fitaLeg').textContent = V.aba === 'diario'
     ? 'clique em um dia para ver total, categorias e lançamentos daquele dia'
     : 'cheio = pago · vazio = a pagar · vermelho = vencido';
+  const secaoFita = document.querySelector('.fita');
+  const esconderFita = V.aba === 'viagem';
+  if (secaoFita) secaoFita.hidden = esconderFita;
 
   $('moedas').innerHTML = Object.keys(MOEDAS).map(k =>
     `<button data-m="${k}" class="${(S.moeda || 'BRL') === k ? 'on' : ''}"
@@ -95,7 +98,8 @@ export function render() {
     V.aba === 'viagem' ? telaViagem() : V.aba === 'fixos'  ? telaFixos()  :
     V.aba === 'diagnostico' ? telaDiagnostico() : telaDados();
 
-  fita();
+  if (!esconderFita) fita();
+  else $('dias').innerHTML = '';
   liga();
 }
 setRender(render);
@@ -255,10 +259,6 @@ function liga() {
   document.querySelectorAll('[data-vdia]').forEach(b => {
     b.onclick = () => { V.viagemDiaSel = b.dataset.vdia; render(); };
   });
-  document.querySelectorAll('[data-vg-dia]').forEach(b => {
-    b.onclick = () => { V.viagemDiaSel = b.dataset.vgDia; render(); };
-  });
-
   // trocar de viagem, criar e editar
   on('selViagem', 'onchange', e => { V.viagemId = e.target.value; render(); });
   on('novaViagem', 'onclick', () => formViagem(null));

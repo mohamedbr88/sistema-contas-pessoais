@@ -297,20 +297,27 @@ tr.lin:hover{background:color-mix(in srgb,var(--c) 7%,#fff)}
 .viagem-valor small{display:block;font-size:10px;color:var(--ink-2);line-height:1.25}
 .viagem-vazio-dia{padding:18px}
 .viagem-grafico-card{margin:0 14px 14px}
-.viagem-grafico-topo{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line)}
-.viagem-grafico-topo span{display:block;background:#FBFDFC;padding:10px 11px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
-.viagem-grafico-topo b{display:block;font-family:var(--mono);font-size:12.5px;color:var(--ink);letter-spacing:0;text-transform:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px}
-.viagem-grafico-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:12px;padding:0 14px 10px;align-items:stretch}
-.viagem-grafico-lado{border:1px solid var(--line);border-radius:12px;background:#FBFDFC;overflow:auto}
-.viagem-grafico-dia{padding:12px}
-.viagem-grafico-dia h4{font-family:var(--disp);font-size:15px;color:var(--cofre)}
-.viagem-grafico-dia p{margin-top:3px;font-size:12px;color:var(--ink-2)}
-.viagem-grafico-dia-grid{display:grid;gap:8px;margin-top:10px}
-.viagem-grafico-dia-grid > div{border:1px solid var(--line);border-radius:10px;background:#fff;padding:8px 9px}
-.viagem-grafico-dia-grid span{display:block;font-size:10px;color:var(--ink-2);letter-spacing:.08em;text-transform:uppercase}
-.viagem-grafico-dia-grid b{display:block;margin-top:2px;font-family:var(--mono);font-size:12px;color:var(--ink);line-height:1.25}
-.viagem-grafico-card .fluxo-bar-group.is-selected .fluxo-guide{opacity:.9;stroke:#0F6E5C;stroke-dasharray:0}
-.viagem-grafico-card .fluxo-bar-group.is-selected .fluxo-bar{filter:brightness(.68)}
+.viagem-grafico-hd{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap}
+.viagem-grafico-hd h3{line-height:1.1}
+.viagem-grafico-hd p{margin-top:7px;font-size:12.5px;color:var(--ink-2)}
+.viagem-grafico-moedas{display:flex;justify-content:flex-end}
+.viagem-grafico-moedas-botoes{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.viagem-grafico-moedas-botoes button{width:42px;height:38px;border-radius:12px;font-size:18px;font-weight:700;font-family:var(--mono);background:var(--paper);box-shadow:inset 0 0 0 1px var(--line);color:#fff;transition:transform .16s ease,box-shadow .16s ease,filter .16s ease}
+.viagem-grafico-moedas-botoes button[data-m="BRL"]{background:var(--cofre)}
+.viagem-grafico-moedas-botoes button[data-m="USD"]{background:var(--azul)}
+.viagem-grafico-moedas-botoes button[data-m="EUR"]{background:#7A3E9D}
+.viagem-grafico-moedas-botoes button[data-m="PYG"]{background:#D97706}
+.viagem-grafico-moedas-botoes button:hover{transform:translateY(-1px);filter:saturate(1.04)}
+.viagem-grafico-moedas-botoes button.on{transform:translateY(-1px);box-shadow:0 8px 18px rgba(22,38,44,.12), inset 0 0 0 1px rgba(255,255,255,.2)}
+.viagem-grafico-card .grafico-diario{padding:8px 14px 4px}
+.viagem-grafico-card .grafico-diario svg.diario-evolucao{max-height:none}
+.viagem-grafico-legenda{display:flex;justify-content:flex-end;padding:0 14px 4px}
+.viagem-grafico-legenda span{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink-2)}
+.viagem-grafico-legenda i{display:inline-block;width:20px;height:2px;background:#4C6F67;opacity:.85;border-radius:99px}
+.viagem-grafico-resumo{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;padding:4px 14px 14px}
+.viagem-grafico-kpi{border:1px solid var(--line);border-radius:12px;background:#FBFDFC;box-shadow:0 1px 0 rgba(255,255,255,.9) inset;padding:11px 12px;display:grid;gap:6px;align-content:space-between;min-height:84px}
+.viagem-grafico-kpi span{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.viagem-grafico-kpi b{font-family:var(--mono);font-size:13px;line-height:1.3;color:var(--ink);white-space:normal;word-break:break-word}
 .viagem-secundaria{padding:0 14px 14px}
 .viagem-barra-cat{padding:7px 14px}
 .viagem-barra-cat .lab{display:grid;gap:1px}
@@ -324,8 +331,13 @@ tr.lin:hover{background:color-mix(in srgb,var(--c) 7%,#fff)}
   #selViagem{max-width:130px}
   .viagem-sub{gap:7px;padding:8px 12px}
   .viagem-grafico-card{margin-left:12px;margin-right:12px}
-  .viagem-grafico-topo{grid-template-columns:1fr 1fr}
-  .viagem-grafico-grid{grid-template-columns:1fr;padding:0 12px 10px}
+  .viagem-grafico-hd{display:grid;gap:10px}
+  .viagem-grafico-moedas{justify-content:flex-start}
+  .viagem-grafico-moedas-botoes{gap:7px}
+  .viagem-grafico-moedas-botoes button{width:39px;height:35px;font-size:17px}
+  .viagem-grafico-card .grafico-diario{padding:6px 12px 3px}
+  .viagem-grafico-legenda{padding:0 12px 6px;justify-content:flex-start}
+  .viagem-grafico-resumo{grid-template-columns:1fr;padding:4px 12px 12px}
   .viagem-topo-grid,.viagem-kpi-faixa{grid-template-columns:1fr;padding-left:12px;padding-right:12px}
   .viagem-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
   .viagem-moeda-rail{position:static}
@@ -341,7 +353,7 @@ tr.lin:hover{background:color-mix(in srgb,var(--c) 7%,#fff)}
 }
 
 @media(max-width:1040px){
-  .viagem-grafico-grid{grid-template-columns:1fr}
+  .viagem-grafico-resumo{grid-template-columns:repeat(2,minmax(0,1fr))}
   .viagem-topo-grid,.viagem-kpi-faixa{grid-template-columns:1fr}
   .viagem-moeda-rail{position:static}
 }
