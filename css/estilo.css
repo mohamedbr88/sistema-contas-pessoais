@@ -292,6 +292,18 @@ tr.lin:hover{background:color-mix(in srgb,var(--c) 7%,#fff)}
 .diario-graficos-mes{align-items:start}
 .fluxo-alerta{margin-top:8px;font-size:11px;color:var(--ink-2)}
 .fluxo-resumo b{font-size:11.5px}
+.fluxo-intel-grid{margin-top:10px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.fluxo-intel-item{border:1px solid var(--line);border-radius:10px;background:#FBFDFC;padding:10px 11px;display:grid;gap:4px}
+.fluxo-intel-item span{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.fluxo-intel-item b{font-family:var(--mono);font-size:14px;color:var(--ink);line-height:1.3}
+.fluxo-intel-item small{font-size:11px;color:var(--ink-2);line-height:1.35}
+.fluxo-status.ok{border-color:#CDE6D6;background:#F3FBF6}
+.fluxo-status.warn{border-color:#E7DDBA;background:#FEFCF3}
+.fluxo-status.danger{border-color:#E6C4C4;background:#FFF7F7}
+.fluxo-status.neutral{border-color:#DCE6EA;background:#F8FBFC}
+.fluxo-intel-resumo{grid-column:1/-1}
+.fluxo-intel-resumo ul{margin:0;padding-left:16px;display:grid;gap:4px}
+.fluxo-intel-resumo li{font-size:12px;color:var(--ink);line-height:1.35}
 .fluxo-bar-group .fluxo-guide{stroke:#8EA3AA;stroke-width:1;stroke-dasharray:2 4;opacity:0;transition:opacity .16s ease}
 .fluxo-bar-group .fluxo-bar{transition:filter .16s ease,opacity .16s ease;transform-box:fill-box;transform-origin:50% 100%;animation:fluxoBarGrow .6s cubic-bezier(.25,.9,.3,1) both}
 .fluxo-bar-group:hover .fluxo-guide,.fluxo-bar-group.is-active .fluxo-guide{opacity:.65}
@@ -344,6 +356,8 @@ tr.lin:hover{background:color-mix(in srgb,var(--c) 7%,#fff)}
   .grafico-legenda{font-size:10px;gap:10px}
   .grafico-cabecalho p{font-size:12px}
   .grafico-diario svg.diario-evolucao{max-height:196px}
+  .fluxo-intel-grid{grid-template-columns:1fr}
+  .fluxo-intel-item b{font-size:13px}
   .diario-gasto-dia-bars{height:122px}
   .diario-gasto-dia-meta{font-size:9px}
   .diario-gasto-dia-labels .diario-dia-col-label{font-size:8px}

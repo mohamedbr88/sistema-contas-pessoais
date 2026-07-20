@@ -171,6 +171,11 @@ function diaMaisEconomicoComGasto(itensDia) {
     .sort((a, b) => a.total - b.total || a.dia - b.dia)[0] || null;
 }
 
+function mesAnoAnterior(ano, mes) {
+  if (mes > 1) return { ano, mes: mes - 1 };
+  return { ano: ano - 1, mes: 12 };
+}
+
 function resumoOndeFoiDinheiro(dsMes, totalMes) {
   const porCategoria = new Map();
   dsMes.forEach(d => {
@@ -290,6 +295,50 @@ export function telaDiario(){
   const maiorSequenciaFluxo = maiorSequenciaDiasComGasto(gastoPorDia.itens);
   const diaMaisEconomicoFluxo = diaMaisEconomicoComGasto(gastoPorDia.itens);
   const diaMaisEconomicoResumo = diaMaisEconomicoFluxo ? `${diaMaisEconomicoFluxo.dia} de ${nomeMesLower} — ${Mc(diaMaisEconomicoFluxo.total)}` : 'Sem dados';
+  const projecaoMes = mediaDiariaFluxo * nd;
+  const diasSemLancamento = Math.max(0, nd - (diasComGasto || 0));
+  const statusMeta = (() => {
+    if (!metaMes) {
+      return { classe: 'neutral', titulo: 'Defina um orçamento mensal para ativar este indicador.', detalhe: '' };
+    }
+    const razao = metaBRL > 0 ? (projecaoMes / metaBRL) : 0;
+    if (razao < 0.95) return { classe: 'ok', titulo: 'Abaixo do planejado', detalhe: `Projeção ${Mc(projecaoMes)} para orçamento ${M(metaMes.valor, metaMes.moeda)}` };
+    if (razao <= 1.05) return { classe: 'warn', titulo: 'Dentro do esperado', detalhe: `Projeção ${Mc(projecaoMes)} para orçamento ${M(metaMes.valor, metaMes.moeda)}` };
+    return { classe: 'danger', titulo: 'Acima do esperado', detalhe: `Projeção ${Mc(projecaoMes)} para orçamento ${M(metaMes.valor, metaMes.moeda)}` };
+  })();
+  const mesAnteriorRef = mesAnoAnterior(V.ano, V.mes);
+  const nomeMesAnterior = MESES[mesAnteriorRef.mes - 1];
+  const totalMesAnterior = comparacaoAnterior.temDados ? (comparacaoAnterior.total || 0) : 0;
+  const difAnterior = comparacaoAnterior.temDados ? (comparacaoAnterior.diferenca || 0) : 0;
+  const pctAnterior = comparacaoAnterior.temDados && comparacaoAnterior.percentual != null
+    ? comparacaoAnterior.percentual : null;
+  const setaAnterior = pctAnterior == null ? '→' : pctAnterior > 0 ? '↑' : pctAnterior < 0 ? '↓' : '→';
+  const fimSemanaTotal = gastoPorDia.itens.reduce((acc, item) => {
+    const wd = new Date(V.ano, V.mes - 1, item.dia).getDay();
+    const isFimSemana = wd === 0 || wd === 6;
+    return isFimSemana ? acc + item.total : acc;
+  }, 0);
+  const pctFimSemana = totalMes > 0 ? (fimSemanaTotal / totalMes) * 100 : 0;
+  const diasAcimaMedia = gastoPorDia.itens.filter(item => item.qtd > 0 && item.total > mediaDiariaFluxo).length;
+  const ndAnterior = new Date(mesAnteriorRef.ano, mesAnteriorRef.mes, 0).getDate();
+  const mediaAnterior = comparacaoAnterior.temDados ? (totalMesAnterior / ndAnterior) : 0;
+  const deltaMediaAnteriorPct = mediaAnterior > 0 ? ((mediaDiariaFluxo - mediaAnterior) / mediaAnterior) * 100 : null;
+  const insights = [];
+  if (!resumoMes.quantidade) {
+    insights.push('Sem lançamentos no mês selecionado para gerar insights.');
+  } else {
+    if (maiorDiaFluxo) insights.push(`Seu maior gasto ocorreu no dia ${maiorDiaFluxo.dia}.`);
+    insights.push(`Você gastou acima da média em ${diasAcimaMedia} dia(s).`);
+    insights.push(`Os finais de semana representam ${pctFimSemana.toFixed(0)}% das despesas.`);
+    if (categoriaMaior) insights.push(`${categoriaMaior.k} continua sendo sua principal categoria.`);
+    if (deltaMediaAnteriorPct != null) {
+      const abs = Math.abs(deltaMediaAnteriorPct).toFixed(0);
+      const dir = deltaMediaAnteriorPct > 0 ? 'aumentou' : deltaMediaAnteriorPct < 0 ? 'reduziu' : 'se manteve estável';
+      insights.push(dir === 'se manteve estável'
+        ? 'Sua média diária se manteve estável em relação ao mês anterior.'
+        : `Sua média diária ${dir} ${abs}% em relação ao mês anterior.`);
+    }
+  }
 
   return `<section class="diario-dashboard">
     <div class="card diario-hero"><div class="card-hd"><h3>Gasto do mês</h3>
@@ -347,7 +396,7 @@ export function telaDiario(){
             const destaque = maiorDiaFluxo && maiorDiaFluxo.dia === item.dia;
             const valorLabel = Mc(item.total);
             const pctMes = totalMes > 0 ? Math.round((item.total / totalMes) * 100) : 0;
-            const dataCompleta = `${item.dia} de ${nomeMesLower}`;
+            const dataCompleta = `${item.dia} de ${nomeMesLower} de ${V.ano}`;
             const tip = `${dataCompleta}\n${valorLabel}\n${item.qtd} lançamentos\n${pctMes}% do gasto do mês`;
             const tipTouch = `${dataCompleta} — ${valorLabel} — ${item.qtd} lançamentos — ${pctMes}% do gasto do mês`;
             const xCentro = item.x + (item.w / 2);
@@ -365,6 +414,40 @@ export function telaDiario(){
         </svg>
         ${limiteDiarioIdeal == null ? `<div class="fluxo-alerta">Defina um orçamento mensal para acompanhar seu limite diário</div>` : ''}
           <div class="grafico-legenda fluxo-resumo"><span>Total gasto: <b>${Mc(totalMes)}</b></span><span>Média diária: <b>${Mc(mediaDiariaFluxo)}</b></span><span>Maior dia: <b>${maiorDiaResumo}</b></span><span>Dias com gasto: <b>${diasComGasto || 0}</b></span><span>Maior sequência: <b>${maiorSequenciaFluxo || 0} dia(s)</b></span><span>Dia mais econômico: <b>${diaMaisEconomicoResumo}</b></span></div>
+          <div class="fluxo-intel-grid">
+            <div class="fluxo-intel-item">
+              <span>Projeção do fechamento do mês</span>
+              <b>Projeção do mês: ${Mc(projecaoMes)}</b>
+              <small>Estimativa baseada na média diária atual.</small>
+            </div>
+            <div class="fluxo-intel-item fluxo-status ${statusMeta.classe}">
+              <span>Status do mês</span>
+              <b>${statusMeta.classe === 'ok' ? '🟢' : statusMeta.classe === 'warn' ? '🟡' : statusMeta.classe === 'danger' ? '🔴' : '⚪'} ${statusMeta.titulo}</b>
+              <small>${statusMeta.detalhe}</small>
+            </div>
+            <div class="fluxo-intel-item">
+              <span>Comparação com ${nomeMesAnterior}</span>
+              ${comparacaoAnterior.temDados
+                ? `<b>${setaAnterior} ${pctAnterior == null ? '0,0' : Math.abs(pctAnterior).toFixed(1).replace('.', ',')}% em relação a ${nomeMesAnterior}</b>
+                  <small>${nomeMesAnterior}: ${Mc(totalMesAnterior)} · Diferença: ${difAnterior >= 0 ? '+' : '-'} ${Mc(Math.abs(difAnterior))}</small>`
+                : `<b>Sem base de comparação</b><small>Sem lançamentos no mês anterior.</small>`}
+            </div>
+            <div class="fluxo-intel-item">
+              <span>Dias sem gastos</span>
+              <b>Você teve ${diasSemLancamento} dia(s) sem lançamentos neste mês.</b>
+              <small>Total de dias no mês: ${nd}.</small>
+            </div>
+            <div class="fluxo-intel-item">
+              <span>Maior categoria</span>
+              ${categoriaMaior
+                ? `<b>${esc(categoriaMaior.k)}</b><small>${Mc(categoriaMaior.v)} · ${(totalMes > 0 ? (categoriaMaior.v / totalMes) * 100 : 0).toFixed(0)}% do total</small>`
+                : `<b>Sem dados</b><small>Nenhum gasto categorizado neste mês.</small>`}
+            </div>
+            <div class="fluxo-intel-item fluxo-intel-resumo">
+              <span>Resumo Inteligente</span>
+              <ul>${insights.map(t => `<li>${esc(t)}</li>`).join('')}</ul>
+            </div>
+          </div>
       </div></div>
 
     <div class="card"><div class="card-hd"><h3>Resumo do mês</h3></div>
