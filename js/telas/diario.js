@@ -17,6 +17,37 @@ function formatDateIso(data) {
   return `${data.slice(8,10)}/${data.slice(5,7)}/${data.slice(0,4)}`;
 }
 
+function hojeLocalISO() {
+  const agora = new Date();
+  const ano = agora.getFullYear();
+  const mes = String(agora.getMonth() + 1).padStart(2, '0');
+  const dia = String(agora.getDate()).padStart(2, '0');
+  return `${ano}-${mes}-${dia}`;
+}
+
+function partesDataISO(dataISO) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(dataISO || ''))) return null;
+  return {
+    ano: +dataISO.slice(0, 4),
+    mes: +dataISO.slice(5, 7),
+    dia: +dataISO.slice(8, 10)
+  };
+}
+
+function dataISODeDia(ano, mes, dia) {
+  const nd = new Date(ano, mes, 0).getDate();
+  const diaSeguro = Math.max(1, Math.min(+dia || 1, nd));
+  return `${ano}-${String(mes).padStart(2, '0')}-${String(diaSeguro).padStart(2, '0')}`;
+}
+
+function sincronizarSelecaoDiarioPorData(dataISO) {
+  const p = partesDataISO(dataISO);
+  if (!p) return;
+  V.ano = p.ano;
+  V.mes = p.mes;
+  V.diaSel = p.dia;
+}
+
 function pad2(n) {
   return String(n).padStart(2, '0');
 }
@@ -255,8 +286,15 @@ export function telaDiario(){
   const resumoMes = resumoDiarioMes();
   const dsMes = resumoMes.dsMes;
   const nd = new Date(V.ano, V.mes, 0).getDate();
+  const primeiroDiaSemana = new Date(V.ano, V.mes - 1, 1).getDay();
+  const totalCelulas = Math.ceil((primeiroDiaSemana + nd) / 7) * 7;
+  const diaSelValido = Number.isInteger(V.diaSel) && V.diaSel >= 1 && V.diaSel <= nd ? V.diaSel : null;
+  if (V.diaSel !== diaSelValido) V.diaSel = diaSelValido;
   const diasPorDia = resumoMes.porDia;
-  const diaSel = V.diaSel;
+  const diaSel = diaSelValido;
+  const prefixoMes = `${V.ano}-${String(V.mes).padStart(2, '0')}`;
+  const hojeIso = hojeLocalISO();
+  const diaHoje = hojeIso.startsWith(prefixoMes) ? +hojeIso.slice(8, 10) : null;
   const chaveDiaSel = diaSel ? `${V.ano}-${String(V.mes).padStart(2,'0')}-${String(diaSel).padStart(2,'0')}` : null;
   const dsDia = chaveDiaSel ? (diasPorDia[chaveDiaSel] || []) : [];
   const totDia = somaValor(dsDia);
@@ -378,16 +416,18 @@ export function telaDiario(){
     <div class="diario-grid-top">
       <div class="card"><div class="card-hd"><h3>Calendário do mês</h3></div>
         <div class="diario-calendar-help">Clique em qualquer dia para focar o total, as categorias e a lista daquele dia.</div>
-        <div class="diario-calendario-wrap"><div class="diario-calendario">${Array.from({length: nd}, (_,i) => {
-          const d = i + 1;
+        <div class="diario-calendario-wrap"><div class="diario-calendario">${Array.from({length: totalCelulas}, (_,i) => {
+          const d = i - primeiroDiaSemana + 1;
+          if (d < 1 || d > nd) return `<div class="dia dia-vazio" aria-hidden="true"></div>`;
           const itens = diasPorDia[`${V.ano}-${String(V.mes).padStart(2,'0')}-${String(d).padStart(2,'0')}`] || [];
           const totalDia = somaValor(itens);
           const sel = diaSel === d ? ' selected' : '';
           const pico = diaPicoCalendario === d ? ' is-max' : '';
+          const hoje = diaHoje === d ? ' is-today' : '';
           const badge = itens.length ? `<span class="badge">${itens.length}</span>` : '';
           const valorCompacto = itens.length ? valorCalendarioCompacto(totalDia) : '—';
           const valorCompleto = itens.length ? M(totalDia, 'BRL') : 'Nenhum lançamento neste dia.';
-          return `<button class="dia${sel}${pico}${itens.length?' has':' no'}" data-dia="${d}" aria-pressed="${diaSel===d}" title="${itens.length ? `${itens.length} lançamento(s) · ${valorCompleto}` : valorCompleto}">
+          return `<button class="dia${sel}${pico}${hoje}${itens.length?' has':' no'}" data-dia="${d}" aria-pressed="${diaSel===d}" title="${itens.length ? `${itens.length} lançamento(s) · ${valorCompleto}` : valorCompleto}">
             <span class="n">${d}</span>
             ${badge}
             <span class="diario-dia-total">${valorCompacto}</span></button>`;
@@ -554,12 +594,27 @@ function MetasValorLocal(meta) {
   return meta.moeda === (S.moeda || 'BRL') ? meta.valor : valorEmBRL(meta.valor, meta.moeda) / valorEmBRL(1, S.moeda || 'BRL');
 }
 
-export function formDiario(d){
-  const novo=!d;
-  const nd = new Date(V.ano,V.mes,0).getDate();
-  const defaultDay = V.diaSel || (V.ano === new Date().getFullYear() && V.mes === new Date().getMonth() + 1 ? new Date().getDate() : 1);
-  d=d||{id:0,data:`${V.ano}-${String(V.mes).padStart(2,'0')}-${String(Math.min(defaultDay, nd)).padStart(2,'0')}`,desc:'',cat:'Restaurante',loc:'Pessoal',pg:'Cartão',valor:0,obs:'',moeda:S.moeda||'BRL'};
-  if(novo) d.data=`${V.ano}-${String(V.mes).padStart(2,'0')}-${d.data.slice(8)}`;
+export function formDiario(d, opts = {}){
+  const novo = !d;
+  const diaSelecionado = Number.isInteger(opts.diaSelecionado) ? opts.diaSelecionado : null;
+  const dataPadrao = (() => {
+    if (!novo) return d.data;
+    if (opts.usarHoje) return hojeLocalISO();
+    if (diaSelecionado != null) return dataISODeDia(V.ano, V.mes, diaSelecionado);
+    if (Number.isInteger(V.diaSel)) return dataISODeDia(V.ano, V.mes, V.diaSel);
+    return dataISODeDia(V.ano, V.mes, 1);
+  })();
+  d = d || {
+    id: 0,
+    data: dataPadrao,
+    desc: '',
+    cat: 'Restaurante',
+    loc: 'Pessoal',
+    pg: 'Cartão',
+    valor: 0,
+    obs: '',
+    moeda: S.moeda || 'BRL'
+  };
   formGen(novo?'Novo gasto do dia':'Editar gasto',[
     {k:'desc',l:'O quê',ph:'Ex.: Mercado, Uber, jantar'},
     {k:'data',l:'Dia',tipo:'date'},
@@ -571,7 +626,13 @@ export function formDiario(d){
     {k:'obs',l:'Obs'},
   ], {...d, moeda: rotuloMoeda(d.moeda||'BRL')}, async o=>{
     o.moeda = valorMoeda(o.moeda);
-    if(novo) await despesasApi.inserir(o);
-    else     await despesasApi.atualizar(d.id, o);
+    if (novo) {
+      const salvo = await despesasApi.inserir(o);
+      sincronizarSelecaoDiarioPorData(salvo?.data || o.data);
+      return;
+    }
+    o.data = d.data;
+    await despesasApi.atualizar(d.id, o);
+    sincronizarSelecaoDiarioPorData(o.data);
   }, novo ? null : async()=>{ await despesasApi.apagar(d.id); });
 }

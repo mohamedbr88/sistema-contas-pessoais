@@ -19,7 +19,7 @@ import { iniciarRelogio } from './relogio.js?v=20260720-7';
 import { doMes, telaMes }        from './telas/mes.js?v=20260720-7';
 import { telaPainel }            from './telas/painel.js?v=20260720-7';
 import { telaAno }               from './telas/ano.js?v=20260720-7';
-import { telaDiario, formDiario, formMetaDiario } from './telas/diario.js?v=20260720-7';
+import { telaDiario, formDiario, formMetaDiario } from './telas/diario.js?v=20260721-2';
 import { telaViagem, formHosp, formGasto, renderCabecalhoViagem } from './telas/viagem.js?v=20260721-1';
 import { formViagem } from './telas/viagem_form.js?v=20260720-7';
 import { formFixo } from './telas/fixo_form.js?v=20260720-7';
@@ -32,6 +32,22 @@ import { form }                  from './telas/form_conta.js?v=20260720-7';
 const $ = id => document.getElementById(id);
 const on = (id, ev, fn) => { const e = $(id); if (e) e[ev] = fn; };
 const RELOAD_TOPO = 'contas:voltar-topo';
+let abaRenderAnterior = null;
+
+function selecionarDiaInicialDiario() {
+  const hoje = new Date();
+  const anoHoje = hoje.getFullYear();
+  const mesHoje = hoje.getMonth() + 1;
+  const diaHoje = hoje.getDate();
+  const nd = new Date(V.ano, V.mes, 0).getDate();
+  if (V.ano === anoHoje && V.mes === mesHoje) {
+    V.diaSel = Math.min(diaHoje, nd);
+    return;
+  }
+  if (!Number.isInteger(V.diaSel) || V.diaSel < 1 || V.diaSel > nd) {
+    V.diaSel = null;
+  }
+}
 
 function alinharNoTopo(sempre = false) {
   const marcado = (() => {
@@ -109,6 +125,7 @@ function aplicarCabecalhoViagem() {
 // ---------------------------------------------------------------------------
 export function render() {
   if (V.ano < A0 || (V.ano === A0 && V.mes < M0)) { V.ano = A0; V.mes = M0; }
+  if (V.aba === 'diario' && abaRenderAnterior !== 'diario') selecionarDiaInicialDiario();
   const noLimite = (V.ano === A0 && V.mes === M0);
   $('prev').style.opacity = noLimite ? .25 : 1;
 
@@ -153,6 +170,7 @@ export function render() {
 
   if (!esconderFita) fita();
   else $('dias').innerHTML = '';
+  abaRenderAnterior = V.aba;
   snapshotEstadoTela();
   liga();
 }
@@ -259,9 +277,9 @@ function liga() {
   };
 
   // dia a dia
-  on('addD',  'onclick', () => formDiario(null));
-  on('addD2', 'onclick', () => formDiario(null));
-  on('addDday','onclick', () => formDiario(null));
+  on('addD',  'onclick', () => formDiario(null, { usarHoje: true }));
+  on('addD2', 'onclick', () => formDiario(null, { usarHoje: true }));
+  on('addDday','onclick', () => formDiario(null, { diaSelecionado: V.diaSel }));
   on('editMetaDiario', 'onclick', () => formMetaDiario());
   document.querySelectorAll('[data-ed]').forEach(b =>
     b.onclick = () => formDiario(S.diario.find(x => x.id === b.dataset.ed)));
