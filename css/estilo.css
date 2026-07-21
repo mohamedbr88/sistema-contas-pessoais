@@ -84,7 +84,7 @@ body.aba-viagem .mes-nome small{margin-top:2px;letter-spacing:.03em;text-transfo
 .diario-calendario .dia .n{align-self:start;justify-self:start;display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 6px;border-radius:999px;background:#FFFFFF;border:1px solid #D7E2E2;color:var(--ink);font-family:var(--mono);font-size:13px;line-height:1;font-weight:700;font-variant-numeric:tabular-nums;z-index:2;box-shadow:0 1px 0 rgba(255,255,255,.85) inset}
 .diario-calendario .dia.is-today .n{color:var(--azul)}
 .diario-calendario .badge{position:absolute;top:7px;right:6px;min-width:20px;text-align:center;background:var(--cofre);color:#fff;border-radius:999px;font-size:10px;line-height:1;padding:3px 5px;font-family:var(--mono);box-shadow:0 1px 2px rgba(22,38,44,.08);z-index:2}
-.diario-dia-total{align-self:end;font-family:var(--mono);font-size:10.5px;color:var(--ink);line-height:1.2;min-height:28px;width:100%;display:block;text-align:center;padding:0 2px;white-space:normal;overflow:visible;text-overflow:clip;word-break:normal}
+.diario-dia-total{align-self:end;font-family:var(--mono);font-size:11.5px;color:var(--ink);line-height:1.1;min-height:28px;width:100%;display:block;text-align:center;padding:3px 5px;border-radius:8px;background:rgba(255,255,255,.78);border:1px solid #E3EBEA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
 .diario-dia-total.is-hidden{display:none}
 .diario-calendario .dia.no .diario-dia-total{color:var(--ink-2)}
 
@@ -660,7 +660,7 @@ th{font-weight:600}
   .diario-calendario .dia{min-height:75px;padding:6px 6px}
   .diario-calendario .dia .n{min-width:22px;height:22px;font-size:12px;padding:0 5px}
   .diario-calendario .badge{top:5px;right:5px;padding:2px 5px}
-  .diario-dia-total{font-size:9.5px;min-height:20px;line-height:1.1}
+  .diario-dia-total{font-size:10px;min-height:20px;line-height:1.05;padding:2px 4px}
   .grafico-legenda{font-size:10px;gap:10px}
   .grafico-cabecalho p{font-size:12px}
   .grafico-diario svg.diario-evolucao{max-height:220px}
@@ -677,7 +677,7 @@ th{font-weight:600}
   .diario-calendario .dia{min-height:96px;padding:8px 7px}
   .diario-calendario .dia .n{min-width:23px;height:23px;font-size:12.5px}
   .diario-calendario .badge{padding:2px 5px;font-size:9.5px}
-  .diario-dia-total{font-size:8.8px;min-height:22px}
+  .diario-dia-total{font-size:9.8px;min-height:22px;padding:2px 4px}
 }
 
 @media(max-width:460px){
