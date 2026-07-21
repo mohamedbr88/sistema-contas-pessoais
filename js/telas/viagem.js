@@ -3,7 +3,7 @@
 // ============================================================================
 
 import { CATD, PAGD, S, V, STATUS, MESES, cor, esc, hojeISO, viagemAtual } from '../estado.js?v=20260720-7';
-import { M, MOEDAS, conv } from '../moeda.js?v=20260720-7';
+import { M, MOEDAS } from '../moeda.js?v=20260720-7';
 import { viagemApi } from '../api.js?v=20260720-7';
 import { formGen } from '../ui.js?v=20260720-7';
 
@@ -12,6 +12,35 @@ const MOEDA_ICONE = { BRL: 'R$', USD: 'US$', EUR: '€', PYG: '₲' };
 const MOEDA_COR = { BRL: 'var(--cofre)', USD: 'var(--azul)', EUR: '#7A3E9D', PYG: '#D97706' };
 const moedaSelecionada = () => S.moeda || 'BRL';
 const mostrarTodas = () => false;
+
+function taxaParaBRL(moeda, viagem = viagemAtual()) {
+  const m = String(moeda || 'BRL').toUpperCase();
+  const pyg = Number(S.pyg) || 1;
+  const mapa = {
+    BRL: 1,
+    EUR: Number(S.cambio) || 1,
+    USD: Number(S.usd) || 1,
+    PYG: pyg ? 1 / pyg : 1
+  };
+
+  const base = String(viagem?.moeda || '').toUpperCase();
+  const cambioViagem = Number(viagem?.cambio) || 0;
+  if (base && cambioViagem > 0) {
+    mapa[base] = base === 'BRL' ? 1 : cambioViagem;
+  }
+  return mapa[m] || 1;
+}
+
+function convViagem(valor, origem, destino = moedaSelecionada(), viagem = viagemAtual()) {
+  const bruto = Number(valor) || 0;
+  const de = String(origem || viagem?.moeda || 'BRL').toUpperCase();
+  const para = String(destino || 'BRL').toUpperCase();
+  if (!bruto || de === para) return bruto;
+  const deParaBRL = taxaParaBRL(de, viagem);
+  const paraParaBRL = taxaParaBRL(para, viagem);
+  const emBRL = bruto * deParaBRL;
+  return paraParaBRL ? emBRL / paraParaBRL : emBRL;
+}
 
 function horaNormalizada(hora) {
   if (!hora) return '';
@@ -31,7 +60,9 @@ function horaOrdenacao(item) {
 }
 
 function valorExibido(valor, origem, destino = moedaSelecionada()) {
-  return M(valor, origem || 'BRL', { moeda: destino });
+  const viagem = viagemAtual();
+  const convertido = convViagem(valor, origem || viagem?.moeda || 'BRL', destino, viagem);
+  return M(convertido, destino, { moeda: destino, converter: false });
 }
 
 function valorAtual(valor, origem) {
@@ -40,6 +71,11 @@ function valorAtual(valor, origem) {
 
 function valorMoedaLocal(valor, moeda) {
   return M(valor, moeda, { moeda, converter: false });
+}
+
+function valorComMoedaDaViagem(viagem, valor, origem, destino = moedaSelecionada()) {
+  const convertido = convViagem(valor, origem || viagem?.moeda || 'BRL', destino, viagem);
+  return M(convertido, destino, { moeda: destino, converter: false });
 }
 
 function diaISO(base, deslocamento) {
@@ -59,6 +95,128 @@ function fimHospedagem(hosp) {
 function intervaloDias(viagem) {
   const total = Math.round((new Date(viagem.fim) - new Date(viagem.inicio)) / 864e5) + 1;
   return Array.from({ length: total }, (_, i) => diaISO(viagem.inicio, i));
+}
+
+function periodoViagem(viagem) {
+  return `${formatoCurto(viagem.inicio)} a ${formatoCurto(viagem.fim)}`;
+}
+
+function diasDaViagem(viagem) {
+  return Math.round((new Date(viagem.fim) - new Date(viagem.inicio)) / 864e5) + 1;
+}
+
+function chaveItem(prefixo, item, idx = 0) {
+  if (item?.id) return `${prefixo}:${item.id}`;
+  const data = item?.data || 'sem-data';
+  const valor = Number(item?.valor) || 0;
+  const nome = item?.desc || item?.nome || 'item';
+  return `${prefixo}:${data}:${nome}:${valor}:${idx}`;
+}
+
+function itemPago(item) {
+  if (item?.pago === true) return true;
+  const st = String(item?.st || item?.status || '').toLowerCase();
+  if (st === 'pago' || st === 'paid') return true;
+  return false;
+}
+
+function possuiMarcacaoPagamento(item) {
+  if (Object.prototype.hasOwnProperty.call(item || {}, 'pago')) return true;
+  if (Object.prototype.hasOwnProperty.call(item || {}, 'st')) return true;
+  if (Object.prototype.hasOwnProperty.call(item || {}, 'status')) return true;
+  return false;
+}
+
+function itensResumoViagem(viagem) {
+  const unicos = new Map();
+
+  (viagem.hosp || []).forEach((h, idx) => {
+    const key = chaveItem('hosp', h, idx);
+    unicos.set(key, {
+      key,
+      tipo: 'hospedagem',
+      valor: Number(h.valor) || 0,
+      moeda: h.moeda || viagem.moeda || 'EUR',
+      pago: itemPago(h),
+      temMarcacaoPagamento: possuiMarcacaoPagamento(h)
+    });
+  });
+
+  (viagem.gastos || []).forEach((g, idx) => {
+    const key = chaveItem('gasto', g, idx);
+    unicos.set(key, {
+      key,
+      tipo: 'gasto',
+      valor: Number(g.valor) || 0,
+      moeda: g.moeda || viagem.moeda || 'EUR',
+      pago: itemPago(g),
+      temMarcacaoPagamento: possuiMarcacaoPagamento(g)
+    });
+  });
+
+  return [...unicos.values()];
+}
+
+export function calcularResumoViagem(viagemId = V.viagemId, moedaDestino = moedaSelecionada()) {
+  const viagem = S.viagens.find(v => v.id === viagemId) || viagemAtual();
+  if (!viagem) return null;
+
+  const itens = itensResumoViagem(viagem);
+  const totalPlanejado = itens.reduce((soma, item) => soma + convViagem(item.valor, item.moeda, moedaDestino, viagem), 0);
+  const totalGastoDurante = (viagem.gastos || []).reduce((soma, item) => soma + convViagem(item.valor || 0, item.moeda || viagem.moeda || 'EUR', moedaDestino, viagem), 0);
+  const temMarcacao = itens.some(item => item.temMarcacaoPagamento);
+  const totalPagoMarcado = itens.filter(item => item.pago).reduce((soma, item) => soma + convViagem(item.valor, item.moeda, moedaDestino, viagem), 0);
+  const totalPago = temMarcacao ? totalPagoMarcado : totalPlanejado;
+  const totalPendente = Math.max(0, totalPlanejado - totalPago);
+  const totalGeral = totalPlanejado;
+
+  return {
+    viagem,
+    moedaDestino,
+    totalPlanejado,
+    totalPago,
+    totalPendente,
+    totalGastoDurante,
+    totalGeral,
+    dias: diasDaViagem(viagem),
+    periodo: periodoViagem(viagem),
+    status: STATUS[viagem.status] || viagem.status || 'Planejamento'
+  };
+}
+
+export function renderCabecalhoViagem(viagemId = V.viagemId, moedaDestino = moedaSelecionada()) {
+  const resumo = calcularResumoViagem(viagemId, moedaDestino);
+  if (!resumo) return null;
+
+  const nome = (resumo.viagem.destino || resumo.viagem.nome || 'Viagem').toUpperCase();
+  const html = `
+    <div class="hd-stat viagem-total-geral">
+      <b>${valorMoedaLocal(resumo.totalGeral, resumo.moedaDestino)}</b>
+      <span>Total geral da viagem</span>
+    </div>
+    <div class="hd-stat">
+      <b>${valorMoedaLocal(resumo.totalPlanejado, resumo.moedaDestino)}</b>
+      <span>Total planejado da viagem</span>
+    </div>
+    <div class="hd-stat">
+      <b>${valorMoedaLocal(resumo.totalPago, resumo.moedaDestino)}</b>
+      <span>Total já pago da viagem</span>
+    </div>
+    <div class="hd-stat">
+      <b>${valorMoedaLocal(resumo.totalPendente, resumo.moedaDestino)}</b>
+      <span>Total pendente da viagem</span>
+    </div>
+    <div class="hd-stat">
+      <b>${valorMoedaLocal(resumo.totalGastoDurante, resumo.moedaDestino)}</b>
+      <span>Total gasto durante a viagem</span>
+    </div>`;
+
+  return {
+    ...resumo,
+    nome,
+    subtitulo: `${resumo.periodo} · ${resumo.dias} dias · Status: ${resumo.status}`,
+    html
+  };
 }
 
 function hospedagemAtiva(viagem, iso) {
@@ -148,7 +306,7 @@ function resumoDia(viagem, iso) {
     if (item.pg && item.pg !== '—') pagamentos.set(item.pg, (pagamentos.get(item.pg) || 0) + 1);
   });
 
-  const emBRL = item => conv(item.valor || 0, item.moeda || viagem.moeda || 'EUR', 'BRL');
+  const emBRL = item => convViagem(item.valor || 0, item.moeda || viagem.moeda || 'EUR', 'BRL', viagem);
   const totalBRL = lancamentos.reduce((s, item) => s + emBRL(item), 0);
   const maior = lancamentos.reduce((maximo, item) => (emBRL(item) > emBRL(maximo) ? item : maximo), { valor: 0, moeda: viagem.moeda || 'EUR' });
   const menor = lancamentos.length ? lancamentos.reduce((minimo, item) => (emBRL(item) < emBRL(minimo) ? item : minimo), lancamentos[0]) : { valor: 0, moeda: viagem.moeda || 'EUR' };
@@ -182,7 +340,7 @@ function resumoGrafico(viagem, exibir) {
     const dia = resumoDia(viagem, iso);
     const lancamentos = dia.lancamentos.map(item => ({
       ...item,
-      valorLocal: conv(item.valor || 0, item.moeda || viagem.moeda || 'EUR', exibir)
+      valorLocal: convViagem(item.valor || 0, item.moeda || viagem.moeda || 'EUR', exibir, viagem)
     }));
     const total = lancamentos.reduce((s, item) => s + item.valorLocal, 0);
     const maior = lancamentos.reduce((maximo, item) => (item.valorLocal > maximo.valorLocal ? item : maximo), { valorLocal: 0 });
@@ -288,8 +446,8 @@ function resumoLateral(dia, viagem, exibir) {
   const maiorMoeda = dia.maior?.moeda || viagem.moeda || 'EUR';
   const menorValor = dia.menor?.valor || 0;
   const menorMoeda = dia.menor?.moeda || viagem.moeda || 'EUR';
-  const totalDiaLocal = conv(dia.totalBRL || 0, 'BRL', exibir);
-  const mediaDiaLocal = conv(dia.mediaBRL || 0, 'BRL', exibir);
+  const totalDiaLocal = convViagem(dia.totalBRL || 0, 'BRL', exibir, viagem);
+  const mediaDiaLocal = convViagem(dia.mediaBRL || 0, 'BRL', exibir, viagem);
   const valorViagem = viagem.moeda || 'EUR';
   const pagamentos = dia.pagamentos.length ? dia.pagamentos.map(([pg, qtd]) => `${esc(pg)} · ${qtd}`).join(' · ') : '—';
   return `<div class="viagem-resumo-dia">
@@ -336,10 +494,6 @@ function railMoedas() {
   </div>`;
 }
 
-function resumoMini(viagem, titulo, valor, origem, detalhe = '') {
-  return `<div class="kpi viagem-kpi"><span>${titulo}</span>${blocoValor(valor, origem, detalhe, true)}</div>`;
-}
-
 export function telaViagem(){
   const viagem = viagemAtual();
   if(!viagem) return `<div class="card"><div class="vazio">
@@ -348,8 +502,16 @@ export function telaViagem(){
       <button class="btn btn-cofre" id="novaViagem">+ Nova viagem</button></div></div>`;
 
   const exibir = moedaSelecionada();
-  const totalHospedagemLocal = viagem.hosp.reduce((s, h) => s + conv(h.valor || 0, h.moeda || viagem.moeda || 'EUR', exibir), 0);
-  const totalGastosLocal = viagem.gastos.reduce((s, g) => s + conv(g.valor || 0, g.moeda || viagem.moeda || 'EUR', exibir), 0);
+  const resumoTopo = calcularResumoViagem(viagem.id, exibir) || {
+    totalGeral: 0,
+    totalPago: 0,
+    totalPendente: 0,
+    totalGastoDurante: 0,
+    periodo: periodoViagem(viagem),
+    dias: diasDaViagem(viagem)
+  };
+  const totalHospedagemLocal = viagem.hosp.reduce((s, h) => s + convViagem(h.valor || 0, h.moeda || viagem.moeda || 'EUR', exibir, viagem), 0);
+  const totalGastosLocal = viagem.gastos.reduce((s, g) => s + convViagem(g.valor || 0, g.moeda || viagem.moeda || 'EUR', exibir, viagem), 0);
   const totalViagemLocal = totalHospedagemLocal + totalGastosLocal;
   const noites = viagem.hosp.reduce((s, h) => s + (h.noites || 1), 0);
   const totalDias = Math.round((new Date(viagem.fim) - new Date(viagem.inicio)) / 864e5) + 1;
@@ -363,11 +525,11 @@ export function telaViagem(){
   const fluxo = estruturaFluxoViagem(grafico.dias, grafico.mediaDiaria);
   const categorias = CATD.map(cat => ({
     cat,
-    valor: viagem.gastos.filter(g => g.cat === cat).reduce((s, g) => s + conv(g.valor || 0, g.moeda || moedaBase, exibir), 0)
+    valor: viagem.gastos.filter(g => g.cat === cat).reduce((s, g) => s + convViagem(g.valor || 0, g.moeda || moedaBase, exibir, viagem), 0)
   })).filter(x => x.valor).sort((a, b) => b.valor - a.valor);
   const maxCategoria = Math.max(...categorias.map(x => x.valor), 1);
   const gastosPorDia = viagem.gastos.reduce((acc, g) => {
-    acc[g.data] = (acc[g.data] || 0) + conv(g.valor || 0, g.moeda || moedaBase, exibir);
+    acc[g.data] = (acc[g.data] || 0) + convViagem(g.valor || 0, g.moeda || moedaBase, exibir, viagem);
     return acc;
   }, {});
   const maxDia = Math.max(...Object.values(gastosPorDia), 1);
@@ -439,10 +601,10 @@ export function telaViagem(){
     </div>
     <div class="viagem-kpi-faixa">
       <div class="kpis viagem-kpis">
-        ${resumoMini(viagem, 'Hospedagem', totalHospedagemLocal, exibir, `${noites} noites · ${valorMoedaLocal(totalHospedagemLocal / (noites || 1), exibir)}/noite`)}
-        ${resumoMini(viagem, 'Gastos do dia', totalGastosLocal, exibir, `${viagem.gastos.length} lançamentos`)}
-        ${resumoMini(viagem, 'Total da viagem', totalViagemLocal, exibir, `${totalDias} dias`)}
-        ${resumoMini(viagem, 'Média diária', totalViagemLocal / totalDias, exibir, `hosp ${valorMoedaLocal(totalHospedagemLocal / (noites || 1), exibir)} + dia ${valorMoedaLocal(totalGastosLocal / totalDias, exibir)}`)}
+        <div class="kpi viagem-kpi"><span>Total da viagem</span><div class="viagem-valor"><b>${valorMoedaLocal(resumoTopo.totalGeral, exibir)}</b><small>${resumoTopo.periodo} · ${resumoTopo.dias} dias</small></div></div>
+        <div class="kpi viagem-kpi"><span>Já pago</span><div class="viagem-valor"><b>${valorMoedaLocal(resumoTopo.totalPago, exibir)}</b><small>Lançamentos marcados como pagos</small></div></div>
+        <div class="kpi viagem-kpi"><span>Pendente</span><div class="viagem-valor"><b>${valorMoedaLocal(resumoTopo.totalPendente, exibir)}</b><small>Planejado menos já pago</small></div></div>
+        <div class="kpi viagem-kpi"><span>Gasto durante a viagem</span><div class="viagem-valor"><b>${valorMoedaLocal(resumoTopo.totalGastoDurante, exibir)}</b><small>${viagem.gastos.length} lançamento(s) de gasto</small></div></div>
       </div>
     </div>
     <div class="grid2 viagem-secundaria">

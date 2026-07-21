@@ -20,7 +20,7 @@ import { doMes, telaMes }        from './telas/mes.js?v=20260720-7';
 import { telaPainel }            from './telas/painel.js?v=20260720-7';
 import { telaAno }               from './telas/ano.js?v=20260720-7';
 import { telaDiario, formDiario, formMetaDiario } from './telas/diario.js?v=20260720-7';
-import { telaViagem, formHosp, formGasto } from './telas/viagem.js?v=20260720-7';
+import { telaViagem, formHosp, formGasto, renderCabecalhoViagem } from './telas/viagem.js?v=20260720-7';
 import { formViagem } from './telas/viagem_form.js?v=20260720-7';
 import { formFixo } from './telas/fixo_form.js?v=20260720-7';
 import { telaInsights, exportarInsightsCsv, exportarInsightsXls, imprimirInsights } from './telas/insights.js?v=20260720-7';
@@ -65,19 +65,20 @@ function snapshotEstadoTela() {
   salvarEstadoTela();
 }
 
-// ---------------------------------------------------------------------------
-//  RENDER
-// ---------------------------------------------------------------------------
-export function render() {
-  if (V.ano < A0 || (V.ano === A0 && V.mes < M0)) { V.ano = A0; V.mes = M0; }
-  const noLimite = (V.ano === A0 && V.mes === M0);
-  $('prev').style.opacity = noLimite ? .25 : 1;
+function estruturaCabecalhoGeral() {
+  return `<div class="hd-stat falta"><b id="hFalta">—</b><span>Falta pagar (Contas Fixas)</span></div>
+      <div class="hd-stat quitado"><b id="hPago">—</b><span>Já pago (Contas Fixas)</span></div>
+      <div class="hd-stat gastos"><b id="hGastos">—</b><span>Gastos do mês</span></div>
+      <div class="hd-stat desemb"><b id="hDesemb">—</b><span>Total desembolsado no mês</span></div>`;
+}
 
-  $('mesNome').textContent = MESES[V.mes - 1];
-  $('anoNome').textContent = V.ano;
+function renderCabecalhoGeral(r) {
+  const hdStats = document.querySelector('.hd-stats');
+  if (!hdStats) return;
+  if (!hdStats.querySelector('#hFalta')) hdStats.innerHTML = estruturaCabecalhoGeral();
+  hdStats.classList.remove('hd-stats-viagem');
+  hdStats.classList.add('hd-stats-geral');
 
-  // o cabeçalho lê do MESMO motor que o painel: não tem como discordarem
-  const r = resumoMes();
   const fixasMes = r.ts.filter(t => t.fixoId);
   const faltaFixas = somaPendente(fixasMes);
   const pagoFixas = somaPago(fixasMes);
@@ -88,6 +89,40 @@ export function render() {
   $('hPago').textContent  = M(pagoFixas);
   $('hGastos').textContent = M(gastosMes);
   $('hDesemb').textContent = M(desembolsado);
+}
+
+function aplicarCabecalhoViagem() {
+  const hdStats = document.querySelector('.hd-stats');
+  const cabecalho = renderCabecalhoViagem(V.viagemId, S.moeda || 'BRL');
+  if (!hdStats || !cabecalho) return false;
+
+  hdStats.innerHTML = cabecalho.html;
+  hdStats.classList.remove('hd-stats-geral');
+  hdStats.classList.add('hd-stats-viagem');
+  $('mesNome').textContent = cabecalho.nome;
+  $('anoNome').textContent = cabecalho.subtitulo;
+  return true;
+}
+
+// ---------------------------------------------------------------------------
+//  RENDER
+// ---------------------------------------------------------------------------
+export function render() {
+  if (V.ano < A0 || (V.ano === A0 && V.mes < M0)) { V.ano = A0; V.mes = M0; }
+  const noLimite = (V.ano === A0 && V.mes === M0);
+  $('prev').style.opacity = noLimite ? .25 : 1;
+
+  const emViagem = V.aba === 'viagem';
+  $('mesNome').textContent = MESES[V.mes - 1];
+  $('anoNome').textContent = V.ano;
+  document.body.classList.toggle('aba-viagem', emViagem);
+  $('prev').hidden = emViagem;
+  $('next').hidden = emViagem;
+
+  const r = resumoMes();
+  if (!emViagem || !aplicarCabecalhoViagem()) {
+    renderCabecalhoGeral(r);
+  }
   $('cMes').textContent   = r.nContas || '';
   $('cFix').textContent   = S.fixos.filter(f => f.ativo).length;
   $('cDia').textContent   = S.diario.filter(d => noMes(d, V.ano, V.mes)).length || '';
