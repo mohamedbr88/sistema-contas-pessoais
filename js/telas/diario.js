@@ -137,23 +137,14 @@ function valorCalendarioCompacto(totalBRL) {
   const info = MOEDAS[moedaTela] || MOEDAS.BRL;
   const convertido = conv(totalBRL || 0, 'BRL', moedaTela);
 
-  const formatar = (opcoes) => new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: info.c,
-    currencyDisplay: 'narrowSymbol',
-    ...opcoes
-  }).format(convertido);
-
   try {
-    if (Math.abs(convertido) >= 1000) {
-      return formatar({
-        notation: 'compact',
-        compactDisplay: 'short',
-        minimumFractionDigits: 1,
-        maximumFractionDigits: 1
-      });
-    }
-    return formatar({ minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: info.c,
+      currencyDisplay: 'narrowSymbol',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(convertido);
   } catch (e) {
     return M(totalBRL, 'BRL');
   }
@@ -424,9 +415,11 @@ export function telaDiario(){
       </div></div>
 
     <div class="diario-grid-top">
-      <div class="card"><div class="card-hd"><h3>Calendário do mês</h3></div>
+      <div class="card diario-calendario-card"><div class="card-hd"><h3>Calendário do mês</h3></div>
         <div class="diario-calendar-help">Clique em qualquer dia para focar o total, as categorias e a lista daquele dia.</div>
-        <div class="diario-calendario-wrap"><div class="diario-calendario">${Array.from({length: totalCelulas}, (_,i) => {
+        <div class="diario-calendario-wrap">
+          <div class="diario-cal-semana">${['DOM','SEG','TER','QUA','QUI','SEX','SAB'].map(d => `<span>${d}</span>`).join('')}</div>
+          <div class="diario-calendario">${Array.from({length: totalCelulas}, (_,i) => {
           const d = i - primeiroDiaSemana + 1;
           if (d < 1 || d > nd) return `<div class="dia dia-vazio" aria-hidden="true"></div>`;
           const itens = diasPorDia[`${V.ano}-${String(V.mes).padStart(2,'0')}-${String(d).padStart(2,'0')}`] || [];
@@ -435,24 +428,50 @@ export function telaDiario(){
           const pico = diaPicoCalendario === d ? ' is-max' : '';
           const hoje = diaHoje === d ? ' is-today' : '';
           const badge = itens.length ? `<span class="badge">${itens.length}</span>` : '';
-          const valorCompacto = itens.length ? valorCalendarioCompacto(totalDia) : '—';
-          const valorCompleto = itens.length ? M(totalDia, 'BRL') : 'Nenhum lançamento neste dia.';
+          const valorCompacto = valorCalendarioCompacto(totalDia);
+          const valorCompleto = `${itens.length} lançamento(s) · ${M(totalDia, 'BRL')}`;
+          const tagHoje = hoje ? '<span class="diario-tag-hoje">Hoje</span>' : '';
           return `<button class="dia${sel}${pico}${hoje}${itens.length?' has':' no'}" data-dia="${d}" aria-pressed="${diaSel===d}" title="${itens.length ? `${itens.length} lançamento(s) · ${valorCompleto}` : valorCompleto}">
             <span class="n">${d}</span>
+            ${tagHoje}
             ${badge}
             <span class="diario-dia-total">${valorCompacto}</span></button>`;
-        }).join('')}</div></div></div>
+        }).join('')}</div>
+      </div></div>
 
-      <div class="card diario-dia-card"><div class="card-hd"><h3>${diaSel ? `Resumo de ${formatDate(V.ano, V.mes, diaSel)}` : 'Resumo do dia selecionado'}</h3>
+      <div class="card diario-dia-card"><div class="card-hd"><h3>${diaSel ? `RESUMO DE ${formatDate(V.ano, V.mes, diaSel)}` : 'RESUMO DO DIA'}</h3>
         <div class="dir">${diaSel ? `<button class="btn btn-cofre" id="addDday">+ Novo gasto neste dia</button>` : `<button class="btn" id="addD">+ Novo gasto</button>`}</div></div>
-        ${diaSel ? (qtd ? `<div class="diario-dia-grid">
-            ${resumoItem('Total gasto no dia', Mc(totDia), `${qtd} lançamento(s)`)}
-            ${resumoItem('Média do dia', Mc(mediaLanc), 'média por lançamento')}
-            ${resumoItem('Maior gasto do dia', maiorDia ? M(maiorDia.valor, maiorDia.moeda) : 'Sem dados', maiorDia ? esc(maiorDia.desc) : 'Sem lançamentos')}
-            ${resumoItem('Forma de pagamento', pgMais ? esc(pgMais.k) : 'Sem dados', pgMais ? Mc(pgMais.v) : 'Sem movimentação')}
-            <div class="diario-stat diario-stat-full"><span>Categorias do dia</span><div class="diario-pills">${listaPills(categoriasDoDia, 'Sem dados')}</div></div>
-            <div class="diario-stat diario-stat-full"><span>Pagamentos usados</span><div class="diario-pills">${listaPills(pagamentosDoDia, 'Sem dados')}</div></div>
-          </div>` : `<div class="vazio diario-vazio-dia"><b>Nenhum lançamento neste dia.</b><p>Selecione outro dia ou use o botão acima para criar um lançamento com essa data.</p></div>`) : `<div class="vazio diario-vazio-dia"><b>Escolha um dia no calendário.</b><p>Ao clicar em um dia você verá o total gasto, categorias, forma de pagamento, média e o maior gasto daquele dia.</p></div>`}
+        ${diaSel ? `<div class="diario-dia-resumo-v2">
+          <div class="diario-dia-sec full">
+            <span>Data selecionada</span>
+            <b>${formatDate(V.ano, V.mes, diaSel)}</b>
+          </div>
+          <div class="diario-dia-sec total full">
+            <span>Total gasto no dia</span>
+            <b>${Mc(totDia)}</b>
+            <small>${qtd} lançamento(s)</small>
+          </div>
+          <div class="diario-dia-sec">
+            <span>Quantidade de lançamentos</span>
+            <b>${qtd}</b>
+          </div>
+          <div class="diario-dia-sec">
+            <span>Maior gasto do dia</span>
+            <b>${maiorDia ? M(maiorDia.valor, maiorDia.moeda) : 'Sem dados'}</b>
+          </div>
+          <div class="diario-dia-sec full">
+            <span>Descrição do maior gasto</span>
+            <b>${maiorDia ? esc(maiorDia.desc) : 'Sem lançamentos'}</b>
+          </div>
+          <div class="diario-dia-sec full">
+            <span>Categorias utilizadas</span>
+            <div class="diario-pills">${listaPills(categoriasDoDia, 'Sem dados')}</div>
+          </div>
+          <div class="diario-dia-sec full">
+            <span>Formas de pagamento utilizadas</span>
+            <div class="diario-pills">${listaPills(pagamentosDoDia, 'Sem dados')}</div>
+          </div>
+        </div>` : `<div class="vazio diario-vazio-dia"><b>Escolha um dia no calendário.</b><p>Ao clicar em um dia você verá o resumo detalhado daquele dia.</p></div>`}
       </div>
     </div>
 
