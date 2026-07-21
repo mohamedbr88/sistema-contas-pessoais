@@ -389,6 +389,40 @@ th{font-weight:600}
 .viagem-grafico-kpi span{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
 .viagem-grafico-kpi b{font-family:var(--mono);font-size:13px;line-height:1.3;color:var(--ink);white-space:normal;word-break:break-word}
 .viagem-secundaria{padding:0 14px 14px}
+.viagem-kpi-faixa-pro{padding-top:12px}
+.viagem-kpis-executivo{grid-template-columns:repeat(4,minmax(0,1fr));background:var(--line)}
+.viagem-kpi-plus{min-height:108px}
+.viagem-categorias-card{margin:0 14px 14px}
+.viagem-categorias-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.viagem-categoria-card{border:1px solid var(--line);border-radius:14px;background:linear-gradient(180deg,#fff 0%,#FBFDFC 100%);padding:11px 12px;display:grid;gap:5px;min-height:124px;box-shadow:0 1px 0 rgba(255,255,255,.9) inset}
+.viagem-categoria-card b{font-family:var(--mono);font-size:15px;color:var(--ink);line-height:1.2}
+.viagem-categoria-card small{font-size:10px;color:var(--ink-2)}
+.viagem-cat-top{display:flex;align-items:center;gap:6px;min-width:0}
+.viagem-cat-top h4{font-size:12px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.viagem-cat-icone{font-size:15px}
+.viagem-cat-meta{display:flex;justify-content:space-between;gap:8px;font-size:10px;color:var(--ink-2)}
+.viagem-analitico-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr) minmax(280px,.8fr);gap:14px;padding:0 14px 14px;align-items:start}
+.viagem-chart-card{margin:0}
+.viagem-chart-body{display:grid;grid-template-columns:140px 1fr;gap:14px;align-items:center;padding:12px 14px 14px}
+.viagem-pizza{width:100%;max-width:140px;height:auto}
+.viagem-chart-legend{display:grid;gap:6px}
+.viagem-chart-legend div{display:grid;grid-template-columns:14px 1fr auto;align-items:center;gap:8px;font-size:11px}
+.viagem-chart-legend i{width:10px;height:10px;border-radius:50%}
+.viagem-chart-legend b{font-family:var(--mono);font-size:11px}
+.viagem-line-wrap{padding:12px 14px 14px}
+.viagem-line{display:block;width:100%;height:auto;max-height:260px}
+.viagem-lateral-card{margin:0}
+.viagem-lateral-grid{padding:12px 14px 14px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.viagem-lateral-grid > div{border:1px solid var(--line);border-radius:12px;background:#FBFDFC;padding:9px 10px;display:grid;gap:3px}
+.viagem-lateral-grid > div.full{grid-column:1/-1}
+.viagem-lateral-grid span{font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-2)}
+.viagem-lateral-grid b{font-family:var(--mono);font-size:12px;color:var(--ink)}
+.viagem-resumo-operacional{margin:0 14px 14px}
+.viagem-op-grid{padding:12px 14px 14px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.viagem-op-grid > div{border:1px solid var(--line);border-radius:12px;background:#FBFDFC;padding:10px 11px;display:grid;gap:4px}
+.viagem-op-grid > div.full{grid-column:1/-1}
+.viagem-op-grid span{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.viagem-op-grid b{font-family:var(--mono);font-size:13px;color:var(--ink)}
 .viagem-barra-cat{padding:7px 14px}
 .viagem-barra-cat .lab{display:grid;gap:1px}
 .viagem-barra-cat .lab b{font-size:12.5px;font-weight:600;color:var(--ink)}
@@ -412,6 +446,14 @@ th{font-weight:600}
   .viagem-grafico-resumo{grid-template-columns:1fr;padding:4px 12px 12px}
   .viagem-topo-grid,.viagem-kpi-faixa{grid-template-columns:1fr;padding-left:12px;padding-right:12px}
   .viagem-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .viagem-kpis-executivo{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .viagem-categorias-card{margin-left:12px;margin-right:12px}
+  .viagem-categorias-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .viagem-analitico-grid{grid-template-columns:1fr;padding-left:12px;padding-right:12px}
+  .viagem-chart-body{grid-template-columns:1fr}
+  .viagem-chart-legend div{grid-template-columns:12px 1fr auto}
+  .viagem-op-grid{grid-template-columns:1fr}
+  .viagem-resumo-operacional{margin-left:12px;margin-right:12px}
   .viagem-moeda-rail{position:static}
   .viagem-resumo-blocos{grid-template-columns:1fr}
   .viagem-dia{grid-template-columns:62px minmax(0,1fr);grid-template-areas:'data total' 'lugar lugar' 'ind ind'}
@@ -427,6 +469,10 @@ th{font-weight:600}
 @media(max-width:1040px){
   .viagem-grafico-resumo{grid-template-columns:repeat(2,minmax(0,1fr))}
   .viagem-topo-grid,.viagem-kpi-faixa{grid-template-columns:1fr}
+  .viagem-kpis-executivo{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .viagem-categorias-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .viagem-analitico-grid{grid-template-columns:1fr 1fr}
+  .viagem-lateral-card{grid-column:1/-1}
   .viagem-moeda-rail{position:static}
 }
 
